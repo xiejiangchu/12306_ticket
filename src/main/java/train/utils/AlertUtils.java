@@ -1,4 +1,4 @@
-package com.xie.train.utils;
+package train.utils;
 
 import javafx.scene.control.Alert;
 

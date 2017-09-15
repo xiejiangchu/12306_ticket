@@ -1,4 +1,4 @@
-package com.xie.train.utils;
+package train.utils;
 
 /**
  * Created by xie on 17/9/15.

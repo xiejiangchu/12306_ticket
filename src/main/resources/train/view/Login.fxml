@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.Pane?>
 
 
-<BorderPane prefHeight="613.0" prefWidth="918.0" stylesheets="@../style.css" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.xie.train.controller.MainUIController">
+<BorderPane prefHeight="613.0" prefWidth="918.0" stylesheets="@../style.css" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="train.controller.MainUIController">
    <top>
       <Pane prefHeight="115.0" prefWidth="918.0" BorderPane.alignment="CENTER" />
    </top>

@@ -1,4 +1,4 @@
-package com.xie.train.utils;
+package train.utils;
 
 import java.net.InetAddress;
 import java.util.GregorianCalendar;

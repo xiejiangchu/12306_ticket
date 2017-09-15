@@ -1,9 +1,6 @@
-package com.xie.train.utils;
+package train.utils;
 
 import com.alibaba.dcm.DnsCacheManipulator;
-import com.xie.train.controller.BaseFXController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -16,8 +13,6 @@ import java.util.Map;
  * Created by xie on 17/9/12.
  */
 public class DnsUtils {
-
-    private static final Logger logger = LoggerFactory.getLogger(BaseFXController.class);
 
     private final static String DOMAIN = "kyfw.12306.cn";
 

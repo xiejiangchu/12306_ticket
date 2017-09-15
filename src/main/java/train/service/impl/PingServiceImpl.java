@@ -1,7 +1,7 @@
-package com.xie.train.service.impl;
+package train.service.impl;
 
-import com.xie.train.service.PingService;
-import com.xie.train.utils.PingUtils;
+import train.service.PingService;
+import train.utils.PingUtils;
 import org.springframework.stereotype.Service;
 import rx.functions.Action1;
 

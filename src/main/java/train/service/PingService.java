@@ -1,4 +1,4 @@
-package com.xie.train.service;
+package train.service;
 
 import java.util.List;
 import java.util.Map;
