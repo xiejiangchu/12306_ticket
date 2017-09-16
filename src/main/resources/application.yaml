@@ -4,4 +4,4 @@ spring:
 javafx:
     stage:
         resizable: true
-    title: MyCoolApp
+    title: 12306抢票

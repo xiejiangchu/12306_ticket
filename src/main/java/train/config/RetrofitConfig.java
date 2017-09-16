@@ -2,13 +2,15 @@ package train.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
+import okhttp3.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func1;
 
 import javax.net.ssl.*;
 import java.io.IOException;
@@ -21,6 +23,8 @@ import java.security.cert.CertificateException;
  */
 @Configuration
 public class RetrofitConfig {
+
+    private static StringBuffer cookieBuffer = new StringBuffer();
 
     @Bean("retrofit")
     public Retrofit retrofitInit() {
@@ -40,7 +44,60 @@ public class RetrofitConfig {
             e.printStackTrace();
         }
 
-        return  new Retrofit.Builder()
+        /**
+         * 插入cookie
+         */
+        okHttpBuilder.addInterceptor(new Interceptor() {
+            @Override
+            public Response intercept(Chain chain) throws IOException {
+                final Request.Builder builder = chain.request().newBuilder();
+
+                //最近在学习RxJava,这里用了RxJava的相关API大家可以忽略,用自己逻辑实现即可
+                Observable.just(cookieBuffer)
+                        .subscribe(new Action1<StringBuffer>() {
+                            @Override
+                            public void call(StringBuffer cookie) {
+                                //添加cookie
+                                cookie.append(";RAIL_DEVICEID=QSTF_Pp5d0KigjzCtBW6mwr7-27Djped6eybGe-F6Onbm25_9Zb_xovg740-xeYIynXIwzrm" +
+                                        "KKXZW5lthyM0PBWJgZNYy4Jj6OhPTd90jXUwornOW5QgbDacaAvfcHD1sCwdB3Ux9bMhPZFlh4zFOquQFvwc15h_");
+                                builder.addHeader("Cookie", cookie.toString());
+                            }
+                        });
+                return chain.proceed(builder.build());
+            }
+        });
+
+        /**
+         * 保存cookie
+         */
+        okHttpBuilder.addInterceptor(new Interceptor() {
+            @Override
+            public Response intercept(Chain chain) throws IOException {
+                Response originalResponse = chain.proceed(chain.request());
+                if (!originalResponse.headers("Set-Cookie").isEmpty()) {
+                    cookieBuffer.setLength(0);
+                    Observable.from(originalResponse.headers("Set-Cookie"))
+                            .map(new Func1<String, String>() {
+                                @Override
+                                public String call(String s) {
+                                    String[] cookieArray = s.split(";");
+                                    return cookieArray[0];
+                                }
+                            })
+                            .subscribe(new Action1<String>() {
+                                @Override
+                                public void call(String cookie) {
+                                    System.out.println("=====================     cookie   =====================");
+                                    System.out.println(cookie);
+                                    cookieBuffer.append(cookie).append(";");
+                                }
+                            });
+                }
+                return originalResponse;
+            }
+        });
+
+        return new Retrofit.Builder()
                 .client(okHttpBuilder.build())
                 .baseUrl("https://kyfw.12306.cn/")
                 .addConverterFactory(StringConverterFactory.create())

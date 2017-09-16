@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?scenebuilder-stylesheet fruitcombo.css?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="205.0" prefWidth="168.0" styleClass="layout" xmlns:fx="http://javafx.com/fxml" fx:controller="train.controller.LoginController">
+    <children>
+        <ComboBox fx:id="fruitCombo" layoutX="15.0" layoutY="33.0" prefWidth="90.0" promptText="choose">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Apple" />
+                    <String fx:value="Orange" />
+                    <String fx:value="Pear" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+        <Label id="fruitSelectorLabel" layoutX="15.0" layoutY="10.0" styleClass="bold-label" text="Fruit Selector" />
+        <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="62.0" prefHeight="134.0" prefWidth="140.0" spacing="8.0">
+            <children>
+                <StackPane id="selected-fruit-frame" minHeight="100.0" minWidth="118.0" prefHeight="108.0" prefWidth="140.0">
+                    <children>
+                        <ImageView fx:id="orangeImage" fitHeight="91.99999237060547" fitWidth="122.66666035739114" pickOnBounds="true" preserveRatio="true" visible="false">
+                            <image>
+                                <Image url="http://pngimg.com/upload/orange_PNG803.png" preserveRatio="false" smooth="false" />
+                            </image>
+                        </ImageView>
+                        <ImageView fx:id="pearImage" fitHeight="93.0" fitWidth="124.0" pickOnBounds="true" preserveRatio="true" visible="false">
+                            <image>
+                                <Image url="http://thedeliciousrevolution.com/wp-content/uploads/2008/08/Pears.png" preserveRatio="false" smooth="false" />
+                            </image>
+                        </ImageView>
+                        <ImageView fx:id="appleImage" fitHeight="93.0" fitWidth="124.0" pickOnBounds="true" preserveRatio="true" visible="false">
+                            <image>
+                                <Image url="http://uhallnyu.files.wordpress.com/2011/11/green-apple.jpg" preserveRatio="false" smooth="false" />
+                            </image>
+                        </ImageView>
+                    </children>
+                </StackPane>
+                <Label fx:id="selectedFruit" textAlignment="CENTER" />
+            </children>
+        </VBox>
+    </children>
+    <stylesheets>
+        <URL value="@../../style.css" />
+    </stylesheets>
+</AnchorPane>
