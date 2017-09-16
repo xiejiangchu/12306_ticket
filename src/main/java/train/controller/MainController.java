@@ -15,6 +15,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.util.StringConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import retrofit2.Call;
@@ -43,6 +45,8 @@ import java.util.*;
 
 @FXMLController
 public class MainController implements Initializable {
+
+    private Logger logger= LoggerFactory.getLogger(MainController.class);
 
     @Autowired
     private Retrofit retrofit;
@@ -168,7 +172,7 @@ public class MainController implements Initializable {
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                System.out.println(t.getMessage());
+                logger.info(t.getMessage());
             }
         });
 
@@ -227,6 +231,7 @@ public class MainController implements Initializable {
         TableColumn<Train, String> col12 = new TableColumn<Train, String>("硬卧");
         TableColumn<Train, String> col13 = new TableColumn<Train, String>("软卧");
         TableColumn<Train, String> col14 = new TableColumn<Train, String>("硬座");
+        TableColumn<Train, String> col15 = new TableColumn<Train, String>("无座");
 
         col1.setCellValueFactory(new PropertyValueFactory<Train, String>("station_train_code"));
         col2.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
@@ -251,17 +256,18 @@ public class MainController implements Initializable {
         col7.setCellValueFactory(new PropertyValueFactory<Train, String>("swz_num"));
         col8.setCellValueFactory(new PropertyValueFactory<Train, String>("zy_num"));
         col9.setCellValueFactory(new PropertyValueFactory<Train, String>("ze_num"));
-        col10.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
-        col11.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
-        col12.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
-        col13.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
-        col14.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
+        col10.setCellValueFactory(new PropertyValueFactory<Train, String>("gr_num"));
+        col11.setCellValueFactory(new PropertyValueFactory<Train, String>("rw_num"));
+        col12.setCellValueFactory(new PropertyValueFactory<Train, String>("yw_num"));
+        col13.setCellValueFactory(new PropertyValueFactory<Train, String>("rw_num"));
+        col14.setCellValueFactory(new PropertyValueFactory<Train, String>("yz_num"));
+        col15.setCellValueFactory(new PropertyValueFactory<Train, String>("wz_num"));
 
 
         train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14);
 
 
-        System.out.println("init");
+        logger.info("init");
     }
 
     public void onFetchStation(Event event) throws IOException {
@@ -295,7 +301,6 @@ public class MainController implements Initializable {
                     } else {
                         trains.clear();
                     }
-                    System.out.println(list.size());
                     for (int i = 0; i < list.size(); i++) {
                         String[] fields = list.get(i).split("\\|");
                         if (fields.length != 36) {
@@ -349,7 +354,7 @@ public class MainController implements Initializable {
 
             @Override
             public void onFailure(Call<FetchTrain> call, Throwable t) {
-                System.out.println(t.getMessage());
+                logger.info(t.getMessage());
             }
         });
 
