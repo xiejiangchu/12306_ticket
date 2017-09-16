@@ -77,3 +77,7 @@
 .bold-label {
     -fx-font-weight: bold;
 }
+
+#train_table .table-column {
+    -fx-alignment: CENTER;
+}

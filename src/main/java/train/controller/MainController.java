@@ -1,6 +1,8 @@
 package train.controller;
 
 import de.felixroske.jfxsupport.FXMLController;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -8,13 +10,11 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DateCell;
-import javafx.scene.control.DatePicker;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.util.StringConverter;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import retrofit2.Call;
@@ -38,6 +38,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @FXMLController
@@ -59,14 +60,20 @@ public class MainController implements Initializable {
     ComboBox<String> time_to;
 
     @FXML
+    TableView<Train> train_table;
+
+    @FXML
     DatePicker date_from;
 
+    private Map<String, Station> map_code = new TreeMap<>();
     private Map<String, Station> map = new HashMap<>();
     private List<Station> list = new ArrayList<Station>();
-    private List<Train> trains = new ArrayList<Train>();
+    private List<Train> trains;
+
 
     private Station station_from_selected;
     private Station station_to_selected;
+    private LocalDate date_selected;
 
     private List<String> hours = Arrays.asList(
             "00:00",
@@ -121,7 +128,8 @@ public class MainController implements Initializable {
                     station.setPy(array_item[3]);
                     station.setAbbrL(array_item[4]);
                     station.setIndex(Integer.parseInt(array_item[5]));
-                    map.put(station.getAbbr(), station);
+                    map.put(station.getName(), station);
+                    map_code.put(station.getCode(), station);
                     list.add(station);
 
                     if (station.getName().contains("宜春")) {
@@ -184,8 +192,7 @@ public class MainController implements Initializable {
 
         date_from.setOnAction(new EventHandler() {
             public void handle(Event t) {
-                LocalDate date = date_from.getValue();
-                System.out.println("Selected date: " + date);
+                date_selected = date_from.getValue();
             }
         });
         date_from.setDayCellFactory(new javafx.util.Callback<DatePicker, DateCell>() {
@@ -206,6 +213,54 @@ public class MainController implements Initializable {
         });
 
 
+        TableColumn<Train, String> col1 = new TableColumn<Train, String>("名称");
+        TableColumn<Train, String> col2 = new TableColumn<Train, String>("出发站");
+        TableColumn<Train, String> col3 = new TableColumn<Train, String>("到达站");
+        TableColumn<Train, String> col4 = new TableColumn<Train, String>("出发时间");
+        TableColumn<Train, String> col5 = new TableColumn<Train, String>("到达时间");
+        TableColumn<Train, String> col6 = new TableColumn<Train, String>("历时");
+        TableColumn<Train, String> col7 = new TableColumn<Train, String>("商务/特等");
+        TableColumn<Train, String> col8 = new TableColumn<Train, String>("一等");
+        TableColumn<Train, String> col9 = new TableColumn<Train, String>("二等");
+        TableColumn<Train, String> col10 = new TableColumn<Train, String>("高级软卧");
+        TableColumn<Train, String> col11 = new TableColumn<Train, String>("软卧");
+        TableColumn<Train, String> col12 = new TableColumn<Train, String>("硬卧");
+        TableColumn<Train, String> col13 = new TableColumn<Train, String>("软卧");
+        TableColumn<Train, String> col14 = new TableColumn<Train, String>("硬座");
+
+        col1.setCellValueFactory(new PropertyValueFactory<Train, String>("station_train_code"));
+        col2.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
+                Train train = param.getValue();
+                String name = map_code.get(train.getFrom_station_telecode()).getName();
+                return new SimpleObjectProperty<String>(name);
+            }
+        });
+        col3.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
+                Train train = param.getValue();
+                String name = map_code.get(train.getTo_station_telecode()).getName();
+                return new SimpleObjectProperty<String>(name);
+            }
+        });
+        col4.setCellValueFactory(new PropertyValueFactory<Train, String>("start_time"));
+        col5.setCellValueFactory(new PropertyValueFactory<Train, String>("arrive_time"));
+        col6.setCellValueFactory(new PropertyValueFactory<Train, String>("lishi"));
+        col7.setCellValueFactory(new PropertyValueFactory<Train, String>("swz_num"));
+        col8.setCellValueFactory(new PropertyValueFactory<Train, String>("zy_num"));
+        col9.setCellValueFactory(new PropertyValueFactory<Train, String>("ze_num"));
+        col10.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
+        col11.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
+        col12.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
+        col13.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
+        col14.setCellValueFactory(new PropertyValueFactory<Train, String>("train_no"));
+
+
+        train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14);
+
+
         System.out.println("init");
     }
 
@@ -219,19 +274,28 @@ public class MainController implements Initializable {
             AlertUtils.showErrorAlert("请选择站点");
             return;
         }
+
+        if (date_selected == null) {
+            AlertUtils.showErrorAlert("请选择日期");
+            return;
+        }
         TrainService trainService = retrofit.create(TrainService.class);
         trainService.init().execute();
 
 
-        Call<FetchTrain> call = trainService.queryX(StrUtils.formatDate(DateTime.now().toDate()),
+        Call<FetchTrain> call = trainService.queryX(date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 station_from_selected.getCode(), station_to_selected.getCode(), PurposeCodes.成人.getVal());
-        System.out.println(call.request().url());
         call.enqueue(new Callback<FetchTrain>() {
             @Override
             public void onResponse(Call<FetchTrain> call, Response<FetchTrain> response) {
                 if (response.code() == 200) {
                     List<String> list = response.body().getData().getResult();
-                    trains.clear();
+                    if (trains == null) {
+                        trains = new ArrayList<Train>();
+                    } else {
+                        trains.clear();
+                    }
+                    System.out.println(list.size());
                     for (int i = 0; i < list.size(); i++) {
                         String[] fields = list.get(i).split("\\|");
                         if (fields.length != 36) {
@@ -277,13 +341,19 @@ public class MainController implements Initializable {
                         trains.add(train);
                     }
                 }
+
+
+                train_table.setItems(FXCollections.observableArrayList(trains));
+
             }
 
             @Override
             public void onFailure(Call<FetchTrain> call, Throwable t) {
-
+                System.out.println(t.getMessage());
             }
         });
+
+
     }
 
     private String getDateString(String dateString) {

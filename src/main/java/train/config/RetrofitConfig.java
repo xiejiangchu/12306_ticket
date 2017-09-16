@@ -58,8 +58,7 @@ public class RetrofitConfig {
                             @Override
                             public void call(StringBuffer cookie) {
                                 //添加cookie
-                                cookie.append(";RAIL_DEVICEID=QSTF_Pp5d0KigjzCtBW6mwr7-27Djped6eybGe-F6Onbm25_9Zb_xovg740-xeYIynXIwzrm" +
-                                        "KKXZW5lthyM0PBWJgZNYy4Jj6OhPTd90jXUwornOW5QgbDacaAvfcHD1sCwdB3Ux9bMhPZFlh4zFOquQFvwc15h_");
+                                cookie.append(";RAIL_DEVICEID=b5MkrO5u2zTPmz-JlEbCccu5rJ68F-oJ0tk1WSYXKn9DaVDisPEQKSx6cApl-aPccKToOQGkJPPXbtNkltQVl_yYzMrmIYhjU5-Y6yCdIDldkrTL582N-rnViCzOlsfUQsPzqU-oD-1ZsXGV5qkYK8Vh_O8wdhYd");
                                 builder.addHeader("Cookie", cookie.toString());
                             }
                         });
