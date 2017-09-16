@@ -26,7 +26,7 @@ public interface TrainService {
     Call<ResponseBody> captchaImage(@Query("login_site") String login_site,
                                     @Query("module") String module,
                                     @Query("rand") String rand,
-                                    @Query("end") String end);
+                                    @Query("end") double end);
 
     /**
      * 获取站信息

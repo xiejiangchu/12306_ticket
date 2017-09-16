@@ -81,3 +81,7 @@
 #train_table .table-column {
     -fx-alignment: CENTER;
 }
+
+#host_table .table-column {
+    -fx-alignment: CENTER;
+}

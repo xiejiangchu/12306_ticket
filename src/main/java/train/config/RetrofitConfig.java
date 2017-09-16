@@ -3,6 +3,7 @@ package train.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import okhttp3.*;
+import org.slf4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Converter;
@@ -23,6 +24,8 @@ import java.security.cert.CertificateException;
  */
 @Configuration
 public class RetrofitConfig {
+
+    private Logger logger = org.slf4j.LoggerFactory.getLogger(RetrofitConfig.class);
 
     private static StringBuffer cookieBuffer = new StringBuffer();
 
@@ -86,8 +89,8 @@ public class RetrofitConfig {
                             .subscribe(new Action1<String>() {
                                 @Override
                                 public void call(String cookie) {
-                                    System.out.println("=====================     cookie   =====================");
-                                    System.out.println(cookie);
+                                    logger.info("=====================     cookie   =====================");
+                                    logger.info(cookie);
                                     cookieBuffer.append(cookie).append(";");
                                 }
                             });

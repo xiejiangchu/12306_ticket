@@ -1,52 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Font?>
 
-<?import java.lang.*?>
-<?import java.net.*?>
-<?import javafx.collections.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
-<?scenebuilder-stylesheet fruitcombo.css?>
-
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="205.0" prefWidth="168.0" styleClass="layout" xmlns:fx="http://javafx.com/fxml" fx:controller="train.controller.LoginController">
-    <children>
-        <ComboBox fx:id="fruitCombo" layoutX="15.0" layoutY="33.0" prefWidth="90.0" promptText="choose">
-            <items>
-                <FXCollections fx:factory="observableArrayList">
-                    <String fx:value="Apple" />
-                    <String fx:value="Orange" />
-                    <String fx:value="Pear" />
-                </FXCollections>
-            </items>
-        </ComboBox>
-        <Label id="fruitSelectorLabel" layoutX="15.0" layoutY="10.0" styleClass="bold-label" text="Fruit Selector" />
-        <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="62.0" prefHeight="134.0" prefWidth="140.0" spacing="8.0">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="train.controller.LoginController">
+    <top>
+        <GridPane BorderPane.alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
             <children>
-                <StackPane id="selected-fruit-frame" minHeight="100.0" minWidth="118.0" prefHeight="108.0" prefWidth="140.0">
-                    <children>
-                        <ImageView fx:id="orangeImage" fitHeight="91.99999237060547" fitWidth="122.66666035739114" pickOnBounds="true" preserveRatio="true" visible="false">
-                            <image>
-                                <Image url="http://pngimg.com/upload/orange_PNG803.png" preserveRatio="false" smooth="false" />
-                            </image>
-                        </ImageView>
-                        <ImageView fx:id="pearImage" fitHeight="93.0" fitWidth="124.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                            <image>
-                                <Image url="http://thedeliciousrevolution.com/wp-content/uploads/2008/08/Pears.png" preserveRatio="false" smooth="false" />
-                            </image>
-                        </ImageView>
-                        <ImageView fx:id="appleImage" fitHeight="93.0" fitWidth="124.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                            <image>
-                                <Image url="http://uhallnyu.files.wordpress.com/2011/11/green-apple.jpg" preserveRatio="false" smooth="false" />
-                            </image>
-                        </ImageView>
-                    </children>
-                </StackPane>
-                <Label fx:id="selectedFruit" textAlignment="CENTER" />
+                <Label text="用户名" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                <Label text="密码" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                <TextField fx:id="username" promptText="用户名" GridPane.columnIndex="1" />
+                <CheckBox fx:id="remeber_me" mnemonicParsing="false" onAction="#onRemeberMe" text="记住我" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Button defaultButton="true" mnemonicParsing="false" onMouseClicked="#onLogin" prefHeight="55.0" prefWidth="162.0" text="登录" GridPane.columnIndex="3" GridPane.rowSpan="3">
+                    <font>
+                        <Font name="System Bold" size="38.0" />
+                    </font>
+                </Button>
+            <PasswordField fx:id="password" promptText="密码" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             </children>
-        </VBox>
-    </children>
-    <stylesheets>
-        <URL value="@../../style.css" />
-    </stylesheets>
-</AnchorPane>
+        </GridPane>
+    </top>
+    <center>
+        <GridPane BorderPane.alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="188.0" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="204.0" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+         <children>
+           
+            <Button fx:id="fetch_image" mnemonicParsing="false" onMouseClicked="#onFetchImage" text="获取图像" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+            <Canvas fx:id="canvas" onMouseClicked="#onCanvasClicked" height="190.0" width="293.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.rowSpan="2" GridPane.valignment="CENTER" />
+         </children>
+        </GridPane>
+    </center>
+</BorderPane>

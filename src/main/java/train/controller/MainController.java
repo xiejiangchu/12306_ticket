@@ -18,16 +18,21 @@ import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import rx.functions.Action1;
 import train.Booter;
 import train.bean.FetchTrain;
+import train.bean.PingHost;
 import train.bean.Station;
 import train.bean.Train;
+import train.config.TextAreaAppender;
 import train.enums.PurposeCodes;
+import train.service.PingService;
 import train.service.TrainService;
 import train.utils.AlertUtils;
 import train.utils.StrUtils;
@@ -38,7 +43,6 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -46,10 +50,14 @@ import java.util.*;
 @FXMLController
 public class MainController implements Initializable {
 
-    private Logger logger= LoggerFactory.getLogger(MainController.class);
+    private Logger logger = LoggerFactory.getLogger(MainController.class);
+    private ApplicationContext applicationContext;
 
     @Autowired
     private Retrofit retrofit;
+
+    @Autowired
+    private PingService pingService;
 
     @FXML
     ComboBox<Station> station_from;
@@ -67,8 +75,29 @@ public class MainController implements Initializable {
     TableView<Train> train_table;
 
     @FXML
+    ListView<String> host_listView;
+
+    @FXML
+    TableView<PingHost> host_table;
+
+
+    @FXML
     DatePicker date_from;
 
+    @FXML
+    TextArea log_textArea;
+
+
+    private static List<String> HOSTS = Arrays.asList("182.243.62.48", "27.148.151.17",
+            "219.147.233.232", "59.44.30.36", "183.58.18.36", "14.18.201.47", "42.123.105.35",
+            "14.215.9.83", "59.49.42.252", "58.222.19.61", "101.227.66.207", "125.90.206.182",
+            "61.156.243.247", "27.159.182.50", "222.180.166.229", "202.98.156.62", "218.92.221.15",
+            "218.92.209.74", "180.97.217.77", "183.62.114.247", "183.134.9.58", "61.147.227.247", "58.222.19.72",
+            "222.245.77.74", "220.162.97.136", "182.140.236.27", "61.136.167.78", "117.23.2.85", "222.218.45.216",
+            "42.81.9.47", "125.46.22.126", "101.227.102.199", "182.106.194.107", "220.162.97.209", "111.206.186.244",
+            "58.222.42.9", "123.128.14.201", "115.231.74.76", "153.35.174.108", "221.202.204.253", "150.138.169.233",
+            "220.194.200.232", "113.207.77.192", "61.155.237.56", "124.164.8.65", "61.167.54.109", "139.215.210.59",
+            "111.62.244.177", "123.138.157.109", "117.148.165.154", "117.23.6.81", "113.107.57.43");
     private Map<String, Station> map_code = new TreeMap<>();
     private Map<String, Station> map = new HashMap<>();
     private List<Station> list = new ArrayList<Station>();
@@ -78,6 +107,10 @@ public class MainController implements Initializable {
     private Station station_from_selected;
     private Station station_to_selected;
     private LocalDate date_selected;
+
+
+    private LocalDate start_date;
+    private LocalDate end_date;
 
     private List<String> hours = Arrays.asList(
             "00:00",
@@ -105,15 +138,21 @@ public class MainController implements Initializable {
             "23:00"
     );
 
+
     @FXML
     public void onLogin(Event event) throws IOException {
         Booter.showView(LoginView.class, Modality.NONE);
     }
 
-
     @Override
     @FXML
     public void initialize(URL location, ResourceBundle resources) {
+
+        TextAreaAppender.setTextArea(log_textArea);
+
+        start_date = LocalDate.now();
+        end_date = start_date.plusDays(30);
+
 
         TrainService trainService = retrofit.create(TrainService.class);
         trainService.stationName(StrUtils.stationName()).enqueue(new Callback<String>() {
@@ -206,11 +245,14 @@ public class MainController implements Initializable {
                     @Override
                     public void updateItem(LocalDate item, boolean empty) {
                         super.updateItem(item, empty);
-                        DayOfWeek day = DayOfWeek.from(item);
-                        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
+                        if (item.compareTo(start_date) >= 0 && (item.compareTo(end_date) <= 0)) {
                             this.setTextFill(Color.WHITE);
-                            this.setStyle("-fx-background: #FF0000;");
+                            this.setStyle("-fx-background: #55CC55;");
+                        } else {
+                            this.setTextFill(Color.GRAY);
+                            this.setStyle("-fx-background: #9999999;");
                         }
+
                     }
                 };
             }
@@ -253,7 +295,7 @@ public class MainController implements Initializable {
         col4.setCellValueFactory(new PropertyValueFactory<Train, String>("start_time"));
         col5.setCellValueFactory(new PropertyValueFactory<Train, String>("arrive_time"));
         col6.setCellValueFactory(new PropertyValueFactory<Train, String>("lishi"));
-        col7.setCellValueFactory(new PropertyValueFactory<Train, String>("swz_num"));
+        col7.setCellValueFactory(new PropertyValueFactory<Train, String>("tz_num"));
         col8.setCellValueFactory(new PropertyValueFactory<Train, String>("zy_num"));
         col9.setCellValueFactory(new PropertyValueFactory<Train, String>("ze_num"));
         col10.setCellValueFactory(new PropertyValueFactory<Train, String>("gr_num"));
@@ -264,8 +306,17 @@ public class MainController implements Initializable {
         col15.setCellValueFactory(new PropertyValueFactory<Train, String>("wz_num"));
 
 
-        train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14);
+        train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
 
+
+        host_listView.setItems(FXCollections.observableList(HOSTS));
+
+
+        TableColumn<PingHost, String> host_table_col1 = new TableColumn<PingHost, String>("名称");
+        TableColumn<PingHost, String> host_table_col2 = new TableColumn<PingHost, String>("Ping");
+        host_table_col1.setCellValueFactory(new PropertyValueFactory<PingHost, String>("host"));
+        host_table_col2.setCellValueFactory(new PropertyValueFactory<PingHost, String>("ping"));
+        host_table.getColumns().addAll(host_table_col1, host_table_col2);
 
         logger.info("init");
     }
@@ -294,13 +345,13 @@ public class MainController implements Initializable {
         call.enqueue(new Callback<FetchTrain>() {
             @Override
             public void onResponse(Call<FetchTrain> call, Response<FetchTrain> response) {
+                if (trains == null) {
+                    trains = new ArrayList<Train>();
+                } else {
+                    trains.clear();
+                }
                 if (response.code() == 200) {
                     List<String> list = response.body().getData().getResult();
-                    if (trains == null) {
-                        trains = new ArrayList<Train>();
-                    } else {
-                        trains.clear();
-                    }
                     for (int i = 0; i < list.size(); i++) {
                         String[] fields = list.get(i).split("\\|");
                         if (fields.length != 36) {
@@ -327,20 +378,20 @@ public class MainController implements Initializable {
                         train.to_station_no = fields[17];
                         train.is_support_card = fields[18];
                         train.controlled_train_flag = fields[19];
-                        train.gg_num = StringUtils.isEmpty(fields[20]) ? fields[20] : "--";
-                        train.gr_num = StringUtils.isEmpty(fields[21]) ? fields[21] : "--";
-                        train.qt_num = StringUtils.isEmpty(fields[22]) ? fields[22] : "--";
-                        train.rw_num = StringUtils.isEmpty(fields[23]) ? fields[23] : "--";
-                        train.rz_num = StringUtils.isEmpty(fields[24]) ? fields[24] : "--";
-                        train.tz_num = StringUtils.isEmpty(fields[25]) ? fields[25] : "--";
-                        train.wz_num = StringUtils.isEmpty(fields[26]) ? fields[26] : "--";
-                        train.yb_num = StringUtils.isEmpty(fields[27]) ? fields[27] : "--";
-                        train.yw_num = StringUtils.isEmpty(fields[28]) ? fields[28] : "--";
-                        train.yz_num = StringUtils.isEmpty(fields[29]) ? fields[29] : "--";
-                        train.ze_num = StringUtils.isEmpty(fields[30]) ? fields[30] : "--";
-                        train.zy_num = StringUtils.isEmpty(fields[31]) ? fields[31] : "--";
-                        train.swz_num = StringUtils.isEmpty(fields[32]) ? fields[32] : "--";
-                        train.srrb_num = StringUtils.isEmpty(fields[33]) ? fields[33] : "--";
+                        train.gg_num = !StringUtils.isEmpty(fields[20]) ? fields[20] : "--";
+                        train.gr_num = !StringUtils.isEmpty(fields[21]) ? fields[21] : "--";
+                        train.qt_num = !StringUtils.isEmpty(fields[22]) ? fields[22] : "--";
+                        train.rw_num = !StringUtils.isEmpty(fields[23]) ? fields[23] : "--";
+                        train.rz_num = !StringUtils.isEmpty(fields[24]) ? fields[24] : "--";
+                        train.tz_num = !StringUtils.isEmpty(fields[25]) ? fields[25] : "--";
+                        train.wz_num = !StringUtils.isEmpty(fields[26]) ? fields[26] : "--";
+                        train.yb_num = !StringUtils.isEmpty(fields[27]) ? fields[27] : "--";
+                        train.yw_num = !StringUtils.isEmpty(fields[28]) ? fields[28] : "--";
+                        train.yz_num = !StringUtils.isEmpty(fields[29]) ? fields[29] : "--";
+                        train.ze_num = !StringUtils.isEmpty(fields[30]) ? fields[30] : "--";
+                        train.zy_num = !StringUtils.isEmpty(fields[31]) ? fields[31] : "--";
+                        train.swz_num = !StringUtils.isEmpty(fields[32]) ? fields[32] : "--";
+                        train.srrb_num = !StringUtils.isEmpty(fields[33]) ? fields[33] : "--";
                         train.yp_ex = fields[34];
                         train.seat_types = fields[35];
                         trains.add(train);
@@ -372,5 +423,28 @@ public class MainController implements Initializable {
         }
 
         return dateFormat2.format(date);
+    }
+
+    @FXML
+    public void onClearLog(Event e) {
+        log_textArea.clear();
+    }
+
+    @FXML
+    public void onPingHost(Event e) {
+
+        List<PingHost> pingHostList = new ArrayList<>();
+        rx.Observable.from(HOSTS).subscribe(new Action1<String>() {
+            @Override
+            public void call(String s) {
+                int result = pingService.ping(s);
+                PingHost pingHost = new PingHost();
+                pingHost.setHost(s);
+                pingHost.setPing(result);
+                pingHostList.add(pingHost);
+            }
+        });
+
+        host_table.setItems(FXCollections.observableList(pingHostList));
     }
 }

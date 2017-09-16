@@ -8,7 +8,7 @@ import train.view.MainView;
  * Created by xie on 17/9/12.
  */
 @SpringBootApplication
-public class Booter extends AbstractJavaFxApplicationSupport {
+public class Booter extends AbstractJavaFxApplicationSupport{
 
     public static void main(String[] args) {
         MySplashScreen mySplashScreen = new MySplashScreen();
