@@ -1,7 +1,10 @@
 package train.controller;
 
+import com.alibaba.fastjson.JSON;
 import de.felixroske.jfxsupport.FXMLController;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,6 +18,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.util.StringConverter;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +30,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import rx.functions.Action1;
 import train.Booter;
-import train.bean.FetchTrain;
-import train.bean.PingHost;
-import train.bean.Station;
-import train.bean.Train;
+import train.bean.*;
 import train.config.TextAreaAppender;
+import train.enums.OrderScopeType;
 import train.enums.PurposeCodes;
+import train.enums.QueryType;
 import train.service.PingService;
 import train.service.TrainService;
 import train.utils.AlertUtils;
@@ -52,6 +55,7 @@ public class MainController implements Initializable {
 
     private Logger logger = LoggerFactory.getLogger(MainController.class);
     private ApplicationContext applicationContext;
+    private int count = 0;
 
     @Autowired
     private Retrofit retrofit;
@@ -75,17 +79,25 @@ public class MainController implements Initializable {
     TableView<Train> train_table;
 
     @FXML
+    TableView<OrderDTO> order_table;
+
+    @FXML
     ListView<String> host_listView;
 
     @FXML
     TableView<PingHost> host_table;
 
+    @FXML
+    private Label label_count;
 
     @FXML
     DatePicker date_from;
 
     @FXML
     TextArea log_textArea;
+
+    @FXML
+    private TabPane train_tab;
 
     private TrainService trainService;
 
@@ -104,6 +116,7 @@ public class MainController implements Initializable {
     private Map<String, Station> map = new HashMap<>();
     private List<Station> list = new ArrayList<Station>();
     private List<Train> trains;
+    private QueryMyOrder queryMyOrder;
 
 
     private Station station_from_selected;
@@ -142,7 +155,7 @@ public class MainController implements Initializable {
 
 
     @FXML
-    public void onLogin(Event event) throws IOException {
+    public void onLoginView(Event event) throws IOException {
         Booter.showView(LoginView.class, Modality.NONE);
     }
 
@@ -150,7 +163,27 @@ public class MainController implements Initializable {
     @FXML
     public void initialize(URL location, ResourceBundle resources) {
 
+        setLabelCount();
         TextAreaAppender.setTextArea(log_textArea);
+
+        train_tab.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
+            @Override
+            public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
+                String tab_name = newValue.getText();
+                if (tab_name.equals("服务器测速")) {
+
+                } else if (tab_name.equals("服务器测速")) {
+
+                } else if (tab_name.equals("订单列表")) {
+                    initOrderTab();
+
+                } else if (tab_name.equals("联系人列表")) {
+
+                } else if (tab_name.equals("日志")) {
+
+                }
+            }
+        });
 
         trainService = retrofit.create(TrainService.class);
 
@@ -261,6 +294,32 @@ public class MainController implements Initializable {
         });
 
 
+        initTrainTable();
+        //查询订单
+        initOrderTable();
+
+        initPingTable();
+
+
+
+        host_listView.setItems(FXCollections.observableList(HOSTS));
+
+
+
+
+        logger.info("init");
+    }
+
+    private void initPingTable(){
+        TableColumn<PingHost, String> host_table_col1 = new TableColumn<PingHost, String>("名称");
+        TableColumn<PingHost, String> host_table_col2 = new TableColumn<PingHost, String>("Ping");
+        host_table_col1.setCellValueFactory(new PropertyValueFactory<PingHost, String>("host"));
+        host_table_col2.setCellValueFactory(new PropertyValueFactory<PingHost, String>("ping"));
+        host_table.getColumns().addAll(host_table_col1, host_table_col2);
+    }
+
+    private void initTrainTable(){
+        //查询火车
         TableColumn<Train, String> col1 = new TableColumn<Train, String>("名称");
         TableColumn<Train, String> col2 = new TableColumn<Train, String>("出发站");
         TableColumn<Train, String> col3 = new TableColumn<Train, String>("到达站");
@@ -310,20 +369,100 @@ public class MainController implements Initializable {
         col14.setCellValueFactory(new PropertyValueFactory<Train, String>("yz_num"));
         col15.setCellValueFactory(new PropertyValueFactory<Train, String>("wz_num"));
 
-
         train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
+    }
+
+    private void initOrderTable(){
+        TableColumn<OrderDTO, String> col1 = new TableColumn<OrderDTO, String>("订单号");
+        TableColumn<OrderDTO, String> col2 = new TableColumn<OrderDTO, String>("时间");
+        TableColumn<OrderDTO, String> col3 = new TableColumn<OrderDTO, String>("数量");
+        TableColumn<OrderDTO, String> col4 = new TableColumn<OrderDTO, String>("金额");
+        TableColumn<OrderDTO, String> col5 = new TableColumn<OrderDTO, String>("票务");
+//        TableColumn<OrderDTO, String> col6 = new TableColumn<OrderDTO, String>("历时");
+//        TableColumn<OrderDTO, String> col7 = new TableColumn<OrderDTO, String>("商务/特等");
+//        TableColumn<OrderDTO, String> col8 = new TableColumn<OrderDTO, String>("一等");
+//        TableColumn<OrderDTO, String> col9 = new TableColumn<OrderDTO, String>("二等");
+//        TableColumn<OrderDTO, String> col10 = new TableColumn<OrderDTO, String>("高级软卧");
+//        TableColumn<OrderDTO, String> col11 = new TableColumn<OrderDTO, String>("软卧");
+//        TableColumn<OrderDTO, String> col12 = new TableColumn<OrderDTO, String>("硬卧");
+//        TableColumn<OrderDTO, String> col13 = new TableColumn<OrderDTO, String>("软卧");
+//        TableColumn<OrderDTO, String> col14 = new TableColumn<OrderDTO, String>("硬座");
+//        TableColumn<OrderDTO, String> col15 = new TableColumn<OrderDTO, String>("无座");
+
+        col1.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("sequence_no"));
+        col1.getStyleClass().add("text-bold");
+        col2.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("order_date"));
+        col2.getStyleClass().add("text-green");
+        col3.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("ticket_totalnum"));
+        col3.getStyleClass().add("text-red");
+        col4.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<OrderDTO, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<OrderDTO, String> param) {
+                OrderDTO order = param.getValue();
+                String name = String.valueOf(order.getTicket_price_all()/100);
+                return new SimpleObjectProperty<String>(name);
+            }
+        });
+        col5.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<OrderDTO, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<OrderDTO, String> param) {
+                OrderDTO order = param.getValue();
+                StringBuilder stringBuilder=new StringBuilder();
+
+                String name = JSON.toJSONString(order.getTickets().get(0).getStationTrainDTO());
+                return new SimpleObjectProperty<String>(name);
+            }
+        });
+//        col6.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("lishi"));
+//        col7.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("tz_num"));
+//        col8.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("zy_num"));
+//        col9.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("ze_num"));
+//        col10.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("gr_num"));
+//        col11.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("rw_num"));
+//        col12.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("yw_num"));
+//        col13.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("rw_num"));
+//        col14.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("yz_num"));
+//        col15.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("wz_num"));
 
 
-        host_listView.setItems(FXCollections.observableList(HOSTS));
+        order_table.getColumns().addAll(col1, col2, col3, col4,col5);
+//        order_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
+    }
+
+    private void initOrderTab() {
+        Date now = DateTime.now().toDate();
+        Date end = DateTime.now().plusDays(20).toDate();
+        Call<String> call = trainService.queryMyOrder(QueryType.乘车日期.getVal(), StrUtils.formatDate(now), StrUtils.formatDate(end), OrderScopeType.所有.getVal(), 10, 0, "G", null);
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
 
 
-        TableColumn<PingHost, String> host_table_col1 = new TableColumn<PingHost, String>("名称");
-        TableColumn<PingHost, String> host_table_col2 = new TableColumn<PingHost, String>("Ping");
-        host_table_col1.setCellValueFactory(new PropertyValueFactory<PingHost, String>("host"));
-        host_table_col2.setCellValueFactory(new PropertyValueFactory<PingHost, String>("ping"));
-        host_table.getColumns().addAll(host_table_col1, host_table_col2);
+                if (response.code() == 200) {
+                    if(response.headers().get("Content-Type").contains("application/json")){
+                        logger.info("获取订单成功");
+                        queryMyOrder= JSON.parseObject(response.body(),QueryMyOrder.class);
+                        order_table.setItems(FXCollections.observableArrayList(queryMyOrder.getData().getOrderDTODataList()));
+                    }else{
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                Booter.showView(LoginView.class, Modality.NONE);
+                            }
+                        });
+                    }
+                } else {
+                    System.out.println(response);
+                    logger.info("获取订单失败");
+                }
+            }
 
-        logger.info("init");
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                logger.info("获取订单失败");
+            }
+        });
     }
 
     public void onFetchStation(Event event) throws IOException {
@@ -405,6 +544,13 @@ public class MainController implements Initializable {
 
 
                 train_table.setItems(FXCollections.observableArrayList(trains));
+                count++;
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        setLabelCount();
+                    }
+                });
 
             }
 
@@ -415,6 +561,11 @@ public class MainController implements Initializable {
         });
 
 
+    }
+
+    private void setLabelCount() {
+        String count_str = "第" + count + "次查询";
+        label_count.setText(count_str);
     }
 
     private String getDateString(String dateString) {
@@ -451,5 +602,10 @@ public class MainController implements Initializable {
         });
 
         host_table.setItems(FXCollections.observableList(pingHostList));
+    }
+
+    @FXML
+    public void exitApplication(ActionEvent event) {
+        Platform.exit();
     }
 }

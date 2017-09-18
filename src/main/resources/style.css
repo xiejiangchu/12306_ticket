@@ -108,3 +108,9 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
 }
+
+
+#order_table .table-view {
+    -fx-alignment: CENTER;
+    -fx-font-size: 8;
+}

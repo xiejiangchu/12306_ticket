@@ -5,15 +5,13 @@ package train.bean;
  */
 public class QueryMyOrder extends BaseDto {
 
+    private OrderPageDto data;
 
-    private OrderDTO data;
-
-    public OrderDTO getData() {
+    public OrderPageDto getData() {
         return data;
     }
 
-    public void setData(OrderDTO data) {
+    public void setData(OrderPageDto data) {
         this.data = data;
     }
-
 }

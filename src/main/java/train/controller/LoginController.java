@@ -12,6 +12,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,8 +105,8 @@ public class LoginController implements Initializable {
         fetchImage();
     }
 
-    @FXML
     public void onLogin(Event e) throws IOException {
+
         String username_str = username.getText();
         String password_str = password.getText();
         if (StringUtils.isEmpty(username_str) || StringUtils.isEmpty(password_str)) {
@@ -128,7 +129,14 @@ public class LoginController implements Initializable {
 
 
         logger.info("========================   uamauthclient    ========================");
-        trainService.uamauthclient(newapptk).execute();
+        String tk = trainService.uamauthclient(newapptk).execute().body();
+        if (StringUtils.isEmpty(tk)) {
+            logger.info("登录失败");
+        } else {
+            logger.info("登陆成功,tk" + tk);
+            Stage stage = (Stage) canvas.getScene().getWindow();
+            stage.close();
+        }
     }
 
     @FXML
@@ -138,6 +146,16 @@ public class LoginController implements Initializable {
 
     private void fetchImage() {
         points.clear();
+
+
+        try {
+            trainService.init().execute();
+            trainService.uamtk("otn").execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         Call<ResponseBody> call = trainService.captchaImage("E", "login", "sjrand", random.nextDouble());
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -190,7 +208,7 @@ public class LoginController implements Initializable {
         for (int i = 0; i < points.size(); i++) {
             MyPoint2D point = points.get(i);
             gc.setFill(Color.RED);
-            gc.fillOval(point.getX()-R/2, point.getY()-R/2, R, R);
+            gc.fillOval(point.getX() - R / 2, point.getY() - R / 2, R, R);
         }
     }
 
@@ -208,9 +226,6 @@ public class LoginController implements Initializable {
                 builder.append(",");
             }
         }
-
-        System.out.println(builder.toString());
-
         Call<String> call = trainService.captureCheck(builder.toString(), "E", "sjrand");
 
         call.enqueue(new Callback<String>() {
@@ -222,11 +237,11 @@ public class LoginController implements Initializable {
                         logger.info("验证码验证成功:,无消息返回");
                     } else {
                         CaptureResult result = JSON.parseObject(response.body(), CaptureResult.class);
-                        if (result.getResult_message().contains("失败")) {
-                            logger.info("验证码验证失败1:" + response.body());
+                        if (result.getResult_code() != 4) {
+                            logger.info("验证码验证失败:" + response.body());
                             capture_check = false;
                         } else {
-                            logger.info("验证码验证成功2:" + response.body());
+                            logger.info("验证码验证成功:" + response.body());
                             capture_check = true;
                         }
                     }
@@ -237,7 +252,7 @@ public class LoginController implements Initializable {
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                logger.info("验证码验证失败3:" + t.getMessage());
+                logger.info("验证码验证失败,错误:" + t.getMessage());
             }
         });
 

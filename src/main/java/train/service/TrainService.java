@@ -13,8 +13,12 @@ public interface TrainService {
     @GET("/otn/leftTicket/init")
     Call<String> init();
 
+
+    //https://kyfw.12306.cn/otn/resources/merged/login_UAM_js.js?scriptVersion=1.9034
     @Headers({
-            "User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"
+            "User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36",
+            "Access-Control-Allow-Credentials:true"
+
     })
     @FormUrlEncoded
     @POST("/passport/captcha/captcha-check")
@@ -82,7 +86,7 @@ public interface TrainService {
 //    query_where:G   历史订单 query_where:H
 //    sequeue_train_name:
     @POST("/otn/queryOrder/queryMyOrder")
-    Call<QueryMyOrder> queryMyOrder(@Query("queryType") int train_no,
+    Call<String> queryMyOrder(@Query("queryType") int train_no,
                                     @Query("queryStartDate") String queryStartDate,
                                     @Query("queryEndDate") String queryEndDate,
                                     @Query("come_from_flag") String come_from_flag,

@@ -3,7 +3,6 @@ package train.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import okhttp3.*;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +14,7 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
+import javax.annotation.PostConstruct;
 import javax.net.ssl.*;
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -58,6 +58,7 @@ public class RetrofitConfig {
     }
 
 
+    @PostConstruct
     private void loadFromFile() {
         File file = new File(COOKIE_FILE);
 
@@ -69,9 +70,7 @@ public class RetrofitConfig {
             for (Map.Entry<Object, Object> entry : entrySet) {
                 cookieMap.put((String) entry.getKey(), (String) entry.getValue());
             }
-
             logger.info("加载cookie:" + cookieMap.toString());
-
         } catch (FileNotFoundException e) {
             logger.info("加载cookie失败");
         } catch (IOException e) {
@@ -83,7 +82,7 @@ public class RetrofitConfig {
 
     @Bean("retrofit")
     public Retrofit retrofitInit() {
-        loadFromFile();
+
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd hh:mm:ss")
                 .create();
@@ -99,15 +98,15 @@ public class RetrofitConfig {
             e.printStackTrace();
         }
 
-        /**
-         * log  拦截器
-         */
-        // Log信息拦截器
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);//这里可以选择拦截级别
-
-        //设置 Debug Log 模式
-        okHttpBuilder.addInterceptor(loggingInterceptor);
+//        /**
+//         * log  拦截器
+//         */
+//        // Log信息拦截器
+//        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+//        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);//这里可以选择拦截级别
+//
+//        //设置 Debug Log 模式
+//        okHttpBuilder.addInterceptor(loggingInterceptor);
 
 
         /**
@@ -131,8 +130,9 @@ public class RetrofitConfig {
                                     cookie.append(entry.getKey());
                                     cookie.append("=");
                                     cookie.append(entry.getValue());
+                                    cookie.append(";");
                                 }
-                                cookie.append(";RAIL_DEVICEID=b5MkrO5u2zTPmz-JlEbCccu5rJ68F-oJ0tk1WSYXKn9DaVDisPEQKSx6cApl-aPccKToOQGkJPPXbtNkltQVl_yYzMrmIYhjU5-Y6yCdIDldkrTL582N-rnViCzOlsfUQsPzqU-oD-1ZsXGV5qkYK8Vh_O8wdhYd");
+                                cookie.append("RAIL_DEVICEID=Yr5ltfnHvq_BPruONq3k7ox9hKu_1n6gBTHFA0hrPwf-Pez1nmig7JscI-ZZQoPaVwDnKJjzZtVfDry57xXLK7tW5pEX7mm7-A_W02dg5HIfXtk_LlwxkxxTBG0lZdSyhggnyzH3UQnr1l8Je7rGXYD8PVDb2pV9;");
                                 builder.addHeader("Cookie", cookie.toString());
                             }
                         });
@@ -162,9 +162,10 @@ public class RetrofitConfig {
                                 public void call(String[] cookie) {
                                     for (int i = 0; i < cookie.length; i++) {
                                         String[] name_value = cookie[i].split("=");
-                                        cookieMap.put(name_value[0], name_value[1]);
+                                        if(name_value.length==2){
+                                            cookieMap.put(name_value[0], name_value[1]);
+                                        }
                                     }
-
                                     saveToFile();
                                 }
                             });
