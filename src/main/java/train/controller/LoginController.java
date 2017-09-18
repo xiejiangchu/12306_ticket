@@ -1,5 +1,6 @@
 package train.controller;
 
+import com.alibaba.fastjson.JSON;
 import de.felixroske.jfxsupport.FXMLController;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -15,12 +16,15 @@ import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import train.bean.CaptureResult;
 import train.bean.MyPoint2D;
 import train.service.TrainService;
+import train.utils.AlertUtils;
 
 import java.io.*;
 import java.net.URL;
@@ -36,7 +40,7 @@ import java.util.ResourceBundle;
 public class LoginController implements Initializable {
     private final static String CAPTURE_NAME = "capture.jpeg";
 
-    private final int R = 5;
+    private final int R = 12;
 
     private Logger logger = LoggerFactory.getLogger(LoginController.class);
 
@@ -54,11 +58,18 @@ public class LoginController implements Initializable {
 
     private Random random = new Random();
 
+    private TrainService trainService;
+
     List<MyPoint2D> points = new ArrayList<>();
+
+    private String uamtk;
+    private boolean capture_check = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        fetchImage();
+
+        drawCanvas();
+        trainService = retrofit.create(TrainService.class);
     }
 
     @FXML
@@ -77,16 +88,13 @@ public class LoginController implements Initializable {
                 }
             }
 
-            if(!remove){
+            if (!remove) {
                 if ((int) event.getY() >= 30) {
                     MyPoint2D myPoint2D = new MyPoint2D((int) event.getX(), (int) event.getY());
                     points.add(myPoint2D);
                 }
             }
-
-
             drawCanvas();
-
             System.out.println(points);
         }
     }
@@ -97,8 +105,30 @@ public class LoginController implements Initializable {
     }
 
     @FXML
-    public void onLogin(Event e) {
+    public void onLogin(Event e) throws IOException {
+        String username_str = username.getText();
+        String password_str = password.getText();
+        if (StringUtils.isEmpty(username_str) || StringUtils.isEmpty(password_str)) {
+            AlertUtils.showErrorAlert("未填写用户名和密码");
+            return;
+        }
 
+        if (!capture_check) {
+            AlertUtils.showErrorAlert("图像验证码未通过");
+            return;
+        }
+
+
+        logger.info("========================   登陆    ========================");
+        trainService.login(username_str, password_str, "otn").execute().body();
+
+        logger.info("========================   newapptk    ========================");
+        String newapptk = trainService.uamtk("otn").execute().body().getNewapptk();
+        logger.info("========================   newapptk:  " + newapptk + "    ========================");
+
+
+        logger.info("========================   uamauthclient    ========================");
+        trainService.uamauthclient(newapptk).execute();
     }
 
     @FXML
@@ -108,7 +138,6 @@ public class LoginController implements Initializable {
 
     private void fetchImage() {
         points.clear();
-        TrainService trainService = retrofit.create(TrainService.class);
         Call<ResponseBody> call = trainService.captchaImage("E", "login", "sjrand", random.nextDouble());
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -160,8 +189,57 @@ public class LoginController implements Initializable {
 
         for (int i = 0; i < points.size(); i++) {
             MyPoint2D point = points.get(i);
-            gc.setFill(Color.FORESTGREEN);
-            gc.fillOval(point.getX(), point.getY(), R, R);
+            gc.setFill(Color.RED);
+            gc.fillOval(point.getX()-R/2, point.getY()-R/2, R, R);
         }
+    }
+
+    @FXML
+    public void onCaptureHandIn(Event e) throws IOException {
+
+        if (points == null || points.size() == 0) {
+            AlertUtils.showErrorAlert("验证码未输入");
+            return;
+        }
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < points.size(); i++) {
+            builder.append(points.get(i).toString());
+            if (i != (points.size() - 1)) {
+                builder.append(",");
+            }
+        }
+
+        System.out.println(builder.toString());
+
+        Call<String> call = trainService.captureCheck(builder.toString(), "E", "sjrand");
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.code() == 200) {
+                    if (StringUtils.isEmpty(response.body())) {
+                        capture_check = true;
+                        logger.info("验证码验证成功:,无消息返回");
+                    } else {
+                        CaptureResult result = JSON.parseObject(response.body(), CaptureResult.class);
+                        if (result.getResult_message().contains("失败")) {
+                            logger.info("验证码验证失败1:" + response.body());
+                            capture_check = false;
+                        } else {
+                            logger.info("验证码验证成功2:" + response.body());
+                            capture_check = true;
+                        }
+                    }
+                } else {
+                    System.out.println(response.code() + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                logger.info("验证码验证失败3:" + t.getMessage());
+            }
+        });
+
     }
 }

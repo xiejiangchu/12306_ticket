@@ -3,6 +3,8 @@ package train.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import okhttp3.*;
+import okhttp3.logging.HttpLoggingInterceptor;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +16,14 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 
 import javax.net.ssl.*;
-import java.io.IOException;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by xie on 17/9/15.
@@ -27,11 +33,57 @@ public class RetrofitConfig {
 
     private Logger logger = org.slf4j.LoggerFactory.getLogger(RetrofitConfig.class);
 
-    private static StringBuffer cookieBuffer = new StringBuffer();
+    private static HashMap<String, String> cookieMap = new HashMap<>();
+
+    private final static String COOKIE_FILE = "cookie.properties";
+
+
+    private void saveToFile() {
+        File file = new File(COOKIE_FILE);
+
+        try {
+            OutputStream out = new FileOutputStream(file);
+            Properties properties = new Properties();
+            for (Map.Entry<String, String> entry : cookieMap.entrySet()) {
+                properties.put(entry.getKey(), entry.getValue());
+            }
+            properties.put("RAIL_DEVICEID", "b5MkrO5u2zTPmz-JlEbCccu5rJ68F-oJ0tk1WSYXKn9DaVDisPEQKSx6cApl-aPccKToOQGkJPPXbtNkltQVl_yYzMrmIYhjU5-Y6yCdIDldkrTL582N-rnViCzOlsfUQsPzqU-oD-1ZsXGV5qkYK8Vh_O8wdhYd");
+            properties.store(out, DateTime.now().toString());
+        } catch (FileNotFoundException e) {
+
+        } catch (IOException e) {
+
+        }
+
+    }
+
+
+    private void loadFromFile() {
+        File file = new File(COOKIE_FILE);
+
+        try {
+            InputStream in = new FileInputStream(file);
+            Properties properties = new Properties();
+            properties.load(in);
+            Set<Map.Entry<Object, Object>> entrySet = properties.entrySet();//返回的属性键值对实体
+            for (Map.Entry<Object, Object> entry : entrySet) {
+                cookieMap.put((String) entry.getKey(), (String) entry.getValue());
+            }
+
+            logger.info("加载cookie:" + cookieMap.toString());
+
+        } catch (FileNotFoundException e) {
+            logger.info("加载cookie失败");
+        } catch (IOException e) {
+            logger.info("加载cookie失败");
+        }
+
+    }
+
 
     @Bean("retrofit")
     public Retrofit retrofitInit() {
-
+        loadFromFile();
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd hh:mm:ss")
                 .create();
@@ -48,6 +100,17 @@ public class RetrofitConfig {
         }
 
         /**
+         * log  拦截器
+         */
+        // Log信息拦截器
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);//这里可以选择拦截级别
+
+        //设置 Debug Log 模式
+        okHttpBuilder.addInterceptor(loggingInterceptor);
+
+
+        /**
          * 插入cookie
          */
         okHttpBuilder.addInterceptor(new Interceptor() {
@@ -55,12 +118,20 @@ public class RetrofitConfig {
             public Response intercept(Chain chain) throws IOException {
                 final Request.Builder builder = chain.request().newBuilder();
 
+                logger.info(chain.request().url().toString());
+
                 //最近在学习RxJava,这里用了RxJava的相关API大家可以忽略,用自己逻辑实现即可
-                Observable.just(cookieBuffer)
-                        .subscribe(new Action1<StringBuffer>() {
+                Observable.just(cookieMap)
+                        .subscribe(new Action1<HashMap<String, String>>() {
                             @Override
-                            public void call(StringBuffer cookie) {
-                                //添加cookie
+                            public void call(HashMap<String, String> map) {
+                                StringBuilder cookie = new StringBuilder();
+
+                                for (Map.Entry<String, String> entry : map.entrySet()) {
+                                    cookie.append(entry.getKey());
+                                    cookie.append("=");
+                                    cookie.append(entry.getValue());
+                                }
                                 cookie.append(";RAIL_DEVICEID=b5MkrO5u2zTPmz-JlEbCccu5rJ68F-oJ0tk1WSYXKn9DaVDisPEQKSx6cApl-aPccKToOQGkJPPXbtNkltQVl_yYzMrmIYhjU5-Y6yCdIDldkrTL582N-rnViCzOlsfUQsPzqU-oD-1ZsXGV5qkYK8Vh_O8wdhYd");
                                 builder.addHeader("Cookie", cookie.toString());
                             }
@@ -77,21 +148,24 @@ public class RetrofitConfig {
             public Response intercept(Chain chain) throws IOException {
                 Response originalResponse = chain.proceed(chain.request());
                 if (!originalResponse.headers("Set-Cookie").isEmpty()) {
-                    cookieBuffer.setLength(0);
                     Observable.from(originalResponse.headers("Set-Cookie"))
-                            .map(new Func1<String, String>() {
+                            .map(new Func1<String, String[]>() {
                                 @Override
-                                public String call(String s) {
-                                    String[] cookieArray = s.split(";");
-                                    return cookieArray[0];
+                                public String[] call(String s) {
+                                    logger.info("=====================     cookie   =====================");
+                                    logger.info(s);
+                                    return s.split(";");
                                 }
                             })
-                            .subscribe(new Action1<String>() {
+                            .subscribe(new Action1<String[]>() {
                                 @Override
-                                public void call(String cookie) {
-                                    logger.info("=====================     cookie   =====================");
-                                    logger.info(cookie);
-                                    cookieBuffer.append(cookie).append(";");
+                                public void call(String[] cookie) {
+                                    for (int i = 0; i < cookie.length; i++) {
+                                        String[] name_value = cookie[i].split("=");
+                                        cookieMap.put(name_value[0], name_value[1]);
+                                    }
+
+                                    saveToFile();
                                 }
                             });
                 }

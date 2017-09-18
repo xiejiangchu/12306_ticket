@@ -57,6 +57,20 @@
 .consoleTextArea:focused {
 }
 
+.text-green{
+    -fx-font-weight: bold;
+    -fx-text-fill: #4cae4c;
+}
+
+.text-red{
+    -fx-font-weight: bold;
+    -fx-text-fill: #ff0000;
+}
+
+.text-bold{
+    -fx-text-fill: #000000;
+    -fx-font-weight: bold;
+}
 
 
 
@@ -84,4 +98,13 @@
 
 #host_table .table-column {
     -fx-alignment: CENTER;
+}
+
+.table-view .column-header{
+    -fx-background-color: #4cae4c;
+}
+
+.table-view .column-header.foo .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
 }

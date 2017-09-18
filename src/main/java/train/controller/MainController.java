@@ -87,6 +87,8 @@ public class MainController implements Initializable {
     @FXML
     TextArea log_textArea;
 
+    private TrainService trainService;
+
 
     private static List<String> HOSTS = Arrays.asList("182.243.62.48", "27.148.151.17",
             "219.147.233.232", "59.44.30.36", "183.58.18.36", "14.18.201.47", "42.123.105.35",
@@ -150,11 +152,11 @@ public class MainController implements Initializable {
 
         TextAreaAppender.setTextArea(log_textArea);
 
+        trainService = retrofit.create(TrainService.class);
+
         start_date = LocalDate.now();
         end_date = start_date.plusDays(30);
 
-
-        TrainService trainService = retrofit.create(TrainService.class);
         trainService.stationName(StrUtils.stationName()).enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
@@ -250,7 +252,7 @@ public class MainController implements Initializable {
                             this.setStyle("-fx-background: #55CC55;");
                         } else {
                             this.setTextFill(Color.GRAY);
-                            this.setStyle("-fx-background: #9999999;");
+                            this.setStyle("-fx-background: #999999;");
                         }
 
                     }
@@ -276,6 +278,7 @@ public class MainController implements Initializable {
         TableColumn<Train, String> col15 = new TableColumn<Train, String>("无座");
 
         col1.setCellValueFactory(new PropertyValueFactory<Train, String>("station_train_code"));
+        col1.getStyleClass().add("text-bold");
         col2.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
@@ -284,6 +287,7 @@ public class MainController implements Initializable {
                 return new SimpleObjectProperty<String>(name);
             }
         });
+        col2.getStyleClass().add("text-green");
         col3.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
@@ -292,6 +296,7 @@ public class MainController implements Initializable {
                 return new SimpleObjectProperty<String>(name);
             }
         });
+        col3.getStyleClass().add("text-red");
         col4.setCellValueFactory(new PropertyValueFactory<Train, String>("start_time"));
         col5.setCellValueFactory(new PropertyValueFactory<Train, String>("arrive_time"));
         col6.setCellValueFactory(new PropertyValueFactory<Train, String>("lishi"));
@@ -336,7 +341,7 @@ public class MainController implements Initializable {
             AlertUtils.showErrorAlert("请选择日期");
             return;
         }
-        TrainService trainService = retrofit.create(TrainService.class);
+
         trainService.init().execute();
 
 

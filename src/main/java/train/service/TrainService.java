@@ -2,11 +2,8 @@ package train.service;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.http.GET;
-import retrofit2.http.Headers;
-import retrofit2.http.POST;
-import retrofit2.http.Query;
-import train.bean.FetchTrain;
+import retrofit2.http.*;
+import train.bean.*;
 
 /**
  * Created by xie on 17/9/15.
@@ -16,11 +13,22 @@ public interface TrainService {
     @GET("/otn/leftTicket/init")
     Call<String> init();
 
+    @Headers({
+            "User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"
+    })
+    @FormUrlEncoded
     @POST("/passport/captcha/captcha-check")
-    Call<String> captureCheck();
+    Call<String> captureCheck(@Field("answer") String answer,
+                              @Field("login_site") String login_site,
+                              @Field("rand") String rand);
 
-    @GET("/otn/HttpZF/GetJS")
-    Call<String> getJs();
+    /**
+     * 火车基本信息
+     *
+     * @return
+     */
+    @GET("/otn/resources/js/query/train_list.js")
+    Call<String> train_list();
 
     @GET("/passport/captcha/captcha-image")
     Call<ResponseBody> captchaImage(@Query("login_site") String login_site,
@@ -59,4 +67,53 @@ public interface TrainService {
                                   @Query("to_station_no") String to_station_no,
                                   @Query("seat_types") String seat_types,
                                   @Query("train_date") String train_date);
+
+
+    @POST("/otn/queryOrder/queryMyOrderNoComplete")
+    Call<QueryMyOrder> queryMyOrderNoComplete();
+
+
+    //    queryType:2
+//    queryStartDate:2017-09-17
+//    queryEndDate:2017-10-12
+//    come_from_flag:my_order
+//    pageSize:8
+//    pageIndex:0
+//    query_where:G   历史订单 query_where:H
+//    sequeue_train_name:
+    @POST("/otn/queryOrder/queryMyOrder")
+    Call<QueryMyOrder> queryMyOrder(@Query("queryType") int train_no,
+                                    @Query("queryStartDate") String queryStartDate,
+                                    @Query("queryEndDate") String queryEndDate,
+                                    @Query("come_from_flag") String come_from_flag,
+                                    @Query("pageSize") int pageSize,
+                                    @Query("pageIndex") int pageIndex,
+                                    @Query("query_where") String query_where,
+                                    @Query("sequeue_train_name") String sequeue_train_name);
+
+    //    station_name:
+//    _json_att:
+    @GET("/otn/userCommon/allCitys")
+    Call<AllCityDto> allCitys(@Query("station_name") String station_name,
+                              @Query("_json_att") String _json_att);
+
+
+    @GET("/otn/czxx/queryByTrainNo")
+    Call<QueryByTrainNoDto> queryByTrainNo(@Query("train_no") String train_no,
+                                           @Query("from_station_no") String from_station_no,
+                                           @Query("to_station_no") String to_station_no,
+                                           @Query("seat_types") String seat_types,
+                                           @Query("train_date") String train_date);
+
+
+    @POST("/passport/web/login")
+    Call<String> login(@Query("username") String username,
+                       @Query("password") String password,
+                       @Query("appid") String appid);
+
+    @POST("/passport/web/auth/uamtk")
+    Call<UamtkDto> uamtk(@Query("appid") String appid);
+
+    @POST("/otn/uamauthclient")
+    Call<String> uamauthclient(@Query("tk") String tk);
 }
