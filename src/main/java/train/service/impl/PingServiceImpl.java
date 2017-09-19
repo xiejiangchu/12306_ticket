@@ -1,5 +1,7 @@
 package train.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import rx.functions.Action1;
 import train.service.PingService;
@@ -15,6 +17,8 @@ import java.util.TreeMap;
  */
 @Service
 public class PingServiceImpl implements PingService {
+
+    private final static Logger logger= LoggerFactory.getLogger(PingServiceImpl.class);
 
     @Override
     public int ping(String host) {
@@ -39,6 +43,6 @@ public class PingServiceImpl implements PingService {
 
     @Override
     public void printString(String str) {
-        System.out.println(str);
+        logger.info(str);
     }
 }
