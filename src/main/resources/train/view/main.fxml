@@ -71,32 +71,32 @@
                                                 <ComboBox fx:id="station_from" prefHeight="27.0" prefWidth="166.0" promptText="出发地" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="0" />
                                                 <ComboBox fx:id="station_to" prefWidth="150.0" promptText="目的地" GridPane.columnIndex="2" GridPane.columnSpan="2" />
                                                 <DatePicker fx:id="date_from" promptText="出发时间" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-                                                <CheckBox mnemonicParsing="false" text="GC-高铁" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                                <CheckBox fx:id="ck_gc" mnemonicParsing="false" text="GC-高铁" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                                     <font>
                                                         <Font size="8.0" />
                                                     </font>
                                                 </CheckBox>
-                                                <CheckBox mnemonicParsing="false" text="D-动车" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                                <CheckBox fx:id="ck_d" mnemonicParsing="false" text="D-动车" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                                     <font>
                                                         <Font size="8.0" />
                                                     </font>
                                                 </CheckBox>
-                                                <CheckBox mnemonicParsing="false" text="Z-直达" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                                <CheckBox fx:id="ck_z" mnemonicParsing="false" text="Z-直达" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                                     <font>
                                                         <Font size="8.0" />
                                                     </font>
                                                 </CheckBox>
-                                                <CheckBox mnemonicParsing="false" text="T-特快" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                                <CheckBox fx:id="ck_t" mnemonicParsing="false" text="T-特快" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                                     <font>
                                                         <Font size="8.0" />
                                                     </font>
                                                 </CheckBox>
-                                                <CheckBox mnemonicParsing="false" text="K-快速" GridPane.columnIndex="8" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                                <CheckBox fx:id="ck_k" mnemonicParsing="false" text="K-快速" GridPane.columnIndex="8" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                                     <font>
                                                         <Font size="8.0" />
                                                     </font>
                                                 </CheckBox>
-                                                <CheckBox mnemonicParsing="false" text="其他" GridPane.columnIndex="10" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                                <CheckBox fx:id="ck_q" mnemonicParsing="false" text="其他" GridPane.columnIndex="10" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                                     <font>
                                                         <Font size="8.0" />
                                                     </font>
@@ -210,7 +210,29 @@
         </Tab>
         <Tab text="联系人列表">
             <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+               <children>
+                  <BorderPane layoutX="81.0" prefHeight="1171.0" prefWidth="768.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <top>
+                        <GridPane BorderPane.alignment="CENTER">
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                        </GridPane>
+                     </top>
+                     <center>
+                        <TableView  fx:id="passenger_table" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+
+                        </TableView>
+                     </center>
+                  </BorderPane>
+               </children></AnchorPane>
             </content>
         </Tab>
         <Tab text="日志">

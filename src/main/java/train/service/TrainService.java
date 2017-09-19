@@ -87,13 +87,13 @@ public interface TrainService {
 //    sequeue_train_name:
     @POST("/otn/queryOrder/queryMyOrder")
     Call<String> queryMyOrder(@Query("queryType") int train_no,
-                                    @Query("queryStartDate") String queryStartDate,
-                                    @Query("queryEndDate") String queryEndDate,
-                                    @Query("come_from_flag") String come_from_flag,
-                                    @Query("pageSize") int pageSize,
-                                    @Query("pageIndex") int pageIndex,
-                                    @Query("query_where") String query_where,
-                                    @Query("sequeue_train_name") String sequeue_train_name);
+                              @Query("queryStartDate") String queryStartDate,
+                              @Query("queryEndDate") String queryEndDate,
+                              @Query("come_from_flag") String come_from_flag,
+                              @Query("pageSize") int pageSize,
+                              @Query("pageIndex") int pageIndex,
+                              @Query("query_where") String query_where,
+                              @Query("sequeue_train_name") String sequeue_train_name);
 
     //    station_name:
 //    _json_att:
@@ -120,4 +120,7 @@ public interface TrainService {
 
     @POST("/otn/uamauthclient")
     Call<String> uamauthclient(@Query("tk") String tk);
+
+    @POST("/otn/confirmPassenger/getPassengerDTOs")
+    Call<GetPassengerDto> getPassengerDTOs();
 }

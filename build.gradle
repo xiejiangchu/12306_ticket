@@ -62,6 +62,10 @@ dependencies {
 
     compile 'com.squareup.okhttp3:logging-interceptor:3.3.1'
 
+    // https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
+    compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
 
+    // https://mvnrepository.com/artifact/org.springframework/spring-context-support
+    compile group: 'org.springframework', name: 'spring-context-support', version: '4.3.11.RELEASE'
 
 }

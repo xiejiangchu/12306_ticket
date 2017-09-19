@@ -57,6 +57,20 @@ public class MainController implements Initializable {
     private ApplicationContext applicationContext;
     private int count = 0;
 
+    @FXML
+    private CheckBox ck_gc;
+    @FXML
+    private CheckBox ck_d;
+    @FXML
+    private CheckBox ck_z;
+    @FXML
+    private CheckBox ck_t;
+    @FXML
+    private CheckBox ck_k;
+    @FXML
+    private CheckBox ck_q;
+
+
     @Autowired
     private Retrofit retrofit;
 
@@ -88,6 +102,9 @@ public class MainController implements Initializable {
     TableView<PingHost> host_table;
 
     @FXML
+    TableView<Passenger> passenger_table;
+
+    @FXML
     private Label label_count;
 
     @FXML
@@ -117,6 +134,7 @@ public class MainController implements Initializable {
     private List<Station> list = new ArrayList<Station>();
     private List<Train> trains;
     private QueryMyOrder queryMyOrder;
+    private GetPassengerDto getPassengerDto;
 
 
     private Station station_from_selected;
@@ -178,6 +196,7 @@ public class MainController implements Initializable {
                     initOrderTab();
 
                 } else if (tab_name.equals("联系人列表")) {
+                    initPassengerTab();
 
                 } else if (tab_name.equals("日志")) {
 
@@ -300,17 +319,17 @@ public class MainController implements Initializable {
 
         initPingTable();
 
+        initPassengerTable();
 
 
         host_listView.setItems(FXCollections.observableList(HOSTS));
 
 
-
-
         logger.info("init");
     }
 
-    private void initPingTable(){
+
+    private void initPingTable() {
         TableColumn<PingHost, String> host_table_col1 = new TableColumn<PingHost, String>("名称");
         TableColumn<PingHost, String> host_table_col2 = new TableColumn<PingHost, String>("Ping");
         host_table_col1.setCellValueFactory(new PropertyValueFactory<PingHost, String>("host"));
@@ -318,7 +337,7 @@ public class MainController implements Initializable {
         host_table.getColumns().addAll(host_table_col1, host_table_col2);
     }
 
-    private void initTrainTable(){
+    private void initTrainTable() {
         //查询火车
         TableColumn<Train, String> col1 = new TableColumn<Train, String>("名称");
         TableColumn<Train, String> col2 = new TableColumn<Train, String>("出发站");
@@ -372,7 +391,7 @@ public class MainController implements Initializable {
         train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
     }
 
-    private void initOrderTable(){
+    private void initOrderTable() {
         TableColumn<OrderDTO, String> col1 = new TableColumn<OrderDTO, String>("订单号");
         TableColumn<OrderDTO, String> col2 = new TableColumn<OrderDTO, String>("时间");
         TableColumn<OrderDTO, String> col3 = new TableColumn<OrderDTO, String>("数量");
@@ -399,7 +418,7 @@ public class MainController implements Initializable {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<OrderDTO, String> param) {
                 OrderDTO order = param.getValue();
-                String name = String.valueOf(order.getTicket_price_all()/100);
+                String name = String.valueOf(order.getTicket_price_all() / 100);
                 return new SimpleObjectProperty<String>(name);
             }
         });
@@ -407,7 +426,7 @@ public class MainController implements Initializable {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<OrderDTO, String> param) {
                 OrderDTO order = param.getValue();
-                StringBuilder stringBuilder=new StringBuilder();
+                StringBuilder stringBuilder = new StringBuilder();
 
                 String name = JSON.toJSONString(order.getTickets().get(0).getStationTrainDTO());
                 return new SimpleObjectProperty<String>(name);
@@ -425,7 +444,63 @@ public class MainController implements Initializable {
 //        col15.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("wz_num"));
 
 
-        order_table.getColumns().addAll(col1, col2, col3, col4,col5);
+        order_table.getColumns().addAll(col1, col2, col3, col4, col5);
+//        order_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
+    }
+
+
+    private void initPassengerTable() {
+        TableColumn<Passenger, String> col1 = new TableColumn<Passenger, String>("姓名");
+        TableColumn<Passenger, String> col2 = new TableColumn<Passenger, String>("出生日期");
+        TableColumn<Passenger, String> col3 = new TableColumn<Passenger, String>("身份证");
+        TableColumn<Passenger, String> col4 = new TableColumn<Passenger, String>("身份证编号");
+        TableColumn<Passenger, String> col5 = new TableColumn<Passenger, String>("类型");
+//        TableColumn<OrderDTO, String> col6 = new TableColumn<OrderDTO, String>("历时");
+//        TableColumn<OrderDTO, String> col7 = new TableColumn<OrderDTO, String>("商务/特等");
+//        TableColumn<OrderDTO, String> col8 = new TableColumn<OrderDTO, String>("一等");
+//        TableColumn<OrderDTO, String> col9 = new TableColumn<OrderDTO, String>("二等");
+//        TableColumn<OrderDTO, String> col10 = new TableColumn<OrderDTO, String>("高级软卧");
+//        TableColumn<OrderDTO, String> col11 = new TableColumn<OrderDTO, String>("软卧");
+//        TableColumn<OrderDTO, String> col12 = new TableColumn<OrderDTO, String>("硬卧");
+//        TableColumn<OrderDTO, String> col13 = new TableColumn<OrderDTO, String>("软卧");
+//        TableColumn<OrderDTO, String> col14 = new TableColumn<OrderDTO, String>("硬座");
+//        TableColumn<OrderDTO, String> col15 = new TableColumn<OrderDTO, String>("无座");
+
+        col1.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_name"));
+        col1.getStyleClass().add("text-bold");
+        col2.setCellValueFactory(new PropertyValueFactory<Passenger, String>("born_date"));
+        col2.getStyleClass().add("text-green");
+        col3.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_id_type_name"));
+        col3.getStyleClass().add("text-red");
+        col4.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Passenger, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Passenger, String> param) {
+                Passenger passenger = param.getValue();
+                String name = passenger.getPassenger_id_no();
+                return new SimpleObjectProperty<String>(name);
+            }
+        });
+        col5.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Passenger, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Passenger, String> param) {
+                Passenger passenger = param.getValue();
+                String name = passenger.getPassenger_type_name();
+                return new SimpleObjectProperty<String>(name);
+            }
+        });
+//        col6.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("lishi"));
+//        col7.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("tz_num"));
+//        col8.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("zy_num"));
+//        col9.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("ze_num"));
+//        col10.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("gr_num"));
+//        col11.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("rw_num"));
+//        col12.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("yw_num"));
+//        col13.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("rw_num"));
+//        col14.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("yz_num"));
+//        col15.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("wz_num"));
+
+
+        passenger_table.getColumns().addAll(col1, col2, col3, col4, col5);
 //        order_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
     }
 
@@ -437,14 +512,12 @@ public class MainController implements Initializable {
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
-
-
                 if (response.code() == 200) {
-                    if(response.headers().get("Content-Type").contains("application/json")){
+                    if (response.headers().get("Content-Type").contains("application/json")) {
                         logger.info("获取订单成功");
-                        queryMyOrder= JSON.parseObject(response.body(),QueryMyOrder.class);
+                        queryMyOrder = JSON.parseObject(response.body(), QueryMyOrder.class);
                         order_table.setItems(FXCollections.observableArrayList(queryMyOrder.getData().getOrderDTODataList()));
-                    }else{
+                    } else {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
@@ -461,6 +534,32 @@ public class MainController implements Initializable {
             @Override
             public void onFailure(Call<String> call, Throwable t) {
                 logger.info("获取订单失败");
+            }
+        });
+    }
+
+    private void initPassengerTab() {
+        Call<GetPassengerDto> call = trainService.getPassengerDTOs();
+        call.enqueue(new Callback<GetPassengerDto>() {
+            @Override
+            public void onResponse(Call<GetPassengerDto> call, Response<GetPassengerDto> response) {
+                if (!response.body().getData().getExMsg().contains("登录")) {
+                    logger.info("获取联系人成功");
+                    ObservableList<Passenger> passengers = FXCollections.observableArrayList(response.body().getData().getNormal_passengers());
+                    passenger_table.setItems(passengers);
+                } else {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            Booter.showView(LoginView.class, Modality.NONE);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GetPassengerDto> call, Throwable t) {
+                logger.info("获取联系人失败");
             }
         });
     }

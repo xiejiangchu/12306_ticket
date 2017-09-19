@@ -19,7 +19,6 @@
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -31,7 +30,7 @@
                 <Label text="密码" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
                 <TextField fx:id="username" promptText="用户名" GridPane.columnIndex="1" />
                 <CheckBox fx:id="remeber_me" mnemonicParsing="false" onAction="#onRemeberMe" text="记住我" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                <Button defaultButton="true" mnemonicParsing="false" onMouseClicked="#onLogin" prefHeight="55.0" prefWidth="162.0" text="登录" GridPane.columnIndex="3" GridPane.rowSpan="3">
+                <Button fx:id="btn_login" defaultButton="true" mnemonicParsing="false" onMouseClicked="#onLogin" prefHeight="55.0" prefWidth="162.0" text="登录" GridPane.columnIndex="2" GridPane.rowSpan="2">
                     <font>
                         <Font name="System Bold" size="38.0" />
                     </font>
@@ -52,13 +51,12 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
          <children>
            
-            <Button fx:id="fetch_image" mnemonicParsing="false" onMouseClicked="#onFetchImage" text="获取图像" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
-            <Canvas fx:id="canvas" height="190.0" onMouseClicked="#onCanvasClicked" width="293.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.rowSpan="2" GridPane.valignment="CENTER" />
-            <Button mnemonicParsing="false" onMouseClicked="#onCaptureHandIn" text="验证码验证" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+            <Button fx:id="fetch_image" mnemonicParsing="false" onMouseClicked="#onFetchImage" text="获取图像" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+            <Canvas fx:id="canvas" height="190.0" onMouseClicked="#onCanvasClicked" width="293.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.rowSpan="2" GridPane.valignment="CENTER" />
+            <Button mnemonicParsing="false" onMouseClicked="#onCaptureHandIn" text="验证码验证" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
          </children>
         </GridPane>
     </center>

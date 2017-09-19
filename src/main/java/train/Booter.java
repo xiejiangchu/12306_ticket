@@ -1,19 +1,24 @@
 package train;
 
 import de.felixroske.jfxsupport.AbstractJavaFxApplicationSupport;
-import org.springframework.beans.factory.annotation.Autowired;
+import javafx.application.Platform;
+import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import train.view.MainView;
 
 /**
  * Created by xie on 17/9/12.
  */
 @SpringBootApplication
-public class Booter extends AbstractJavaFxApplicationSupport{
+@EnableScheduling
+public class Booter extends AbstractJavaFxApplicationSupport implements ApplicationContextAware {
 
-    @Autowired
-    ApplicationContext applicationContext;
+
+    private static AnnotationConfigApplicationContext application;
 
     public static void main(String[] args) {
         MySplashScreen mySplashScreen = new MySplashScreen();
@@ -21,9 +26,18 @@ public class Booter extends AbstractJavaFxApplicationSupport{
     }
 
     @Override
-    public void stop() throws Exception {
-        if(applicationContext!=null){
-            System.out.println("yes");
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        System.out.println("init");
+        application = (AnnotationConfigApplicationContext) applicationContext;
+        if (application == null) {
+            System.out.println("null");
         }
+    }
+
+    @Override
+    public void stop() {
+        application.close();
+        Platform.exit();
+        System.exit(0);
     }
 }
