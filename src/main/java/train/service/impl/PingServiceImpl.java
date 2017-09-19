@@ -1,9 +1,10 @@
 package train.service.impl;
 
-import train.service.PingService;
-import train.utils.PingUtils;
 import org.springframework.stereotype.Service;
 import rx.functions.Action1;
+import train.service.PingService;
+import train.utils.Constants;
+import train.utils.PingUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,9 @@ public class PingServiceImpl implements PingService {
 
     @Override
     public int ping(String host) {
+        if (null == host) {
+            return Constants.TIME_OUT;
+        }
         return PingUtils.ping(host);
     }
 
@@ -31,5 +35,10 @@ public class PingServiceImpl implements PingService {
             }
         });
         return map;
+    }
+
+    @Override
+    public void printString(String str) {
+        System.out.println(str);
     }
 }

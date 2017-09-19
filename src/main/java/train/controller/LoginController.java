@@ -44,7 +44,7 @@ public class LoginController implements Initializable {
 
     private final int R = 12;
 
-    private Logger logger = LoggerFactory.getLogger(LoginController.class);
+    private final static Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @Autowired
     private Retrofit retrofit;
@@ -100,7 +100,7 @@ public class LoginController implements Initializable {
                 }
             }
             drawCanvas();
-            System.out.println(points);
+            logger.info(points.toString());
         }
     }
 
@@ -133,7 +133,7 @@ public class LoginController implements Initializable {
             }
         }
         Call<String> call = trainService.captureCheck(builder.toString(), "E", "sjrand");
-        Response<String> response=call.execute();
+        Response<String> response = call.execute();
         if (response.code() == 200) {
             if (StringUtils.isEmpty(response.body())) {
                 capture_check = true;
@@ -149,7 +149,7 @@ public class LoginController implements Initializable {
                 }
             }
         } else {
-            System.out.println(response.code() + response.message());
+            logger.info(response.code() + response.message());
         }
 
         if (!capture_check) {
@@ -286,7 +286,7 @@ public class LoginController implements Initializable {
                         }
                     }
                 } else {
-                    System.out.println(response.code() + response.message());
+                    logger.info(response.code() + response.message());
                 }
             }
 

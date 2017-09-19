@@ -5,3 +5,13 @@ javafx:
     stage:
         resizable: true
     title: 12306抢票
+
+
+schedule :
+  jobs :
+    -
+      cronExpression : '0/3 * * * * ? '
+      dataToWrite : 第一个job
+    -
+      cronExpression : '0/6 * * * * ? '
+      dataToWrite : 第二个job

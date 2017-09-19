@@ -4,11 +4,15 @@ import javafx.application.Platform;
 import javafx.scene.control.TextArea;
 import org.apache.log4j.WriterAppender;
 import org.apache.log4j.spi.LoggingEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Russell Shingleton <shingler@oclc.org>
  */
 public class TextAreaAppender extends WriterAppender {
+
+    private final static  Logger logger = LoggerFactory.getLogger(TextAreaAppender.class);
 
     private static volatile TextArea textArea = null;
 
@@ -46,7 +50,7 @@ public class TextAreaAppender extends WriterAppender {
                             }
                         }
                     } catch (final Throwable t) {
-                        System.out.println("Unable to append log to text area: " + t.getMessage());
+                        logger.info("Unable to append log to text area: " + t.getMessage());
                     }
                 }
             });

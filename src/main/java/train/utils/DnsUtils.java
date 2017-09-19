@@ -1,6 +1,8 @@
 package train.utils;
 
 import com.alibaba.dcm.DnsCacheManipulator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -13,6 +15,8 @@ import java.util.Map;
  * Created by xie on 17/9/12.
  */
 public class DnsUtils {
+
+    private final static Logger logger = LoggerFactory.getLogger(DnsUtils.class);
 
     private final static String DOMAIN = "kyfw.12306.cn";
 
@@ -29,7 +33,7 @@ public class DnsUtils {
 
     public static void main(String[] args) throws Exception {
         try {
-            System.out.println(InetAddress.getByName("kyfw.12306.cn").getHostAddress());
+            logger.info(InetAddress.getByName("kyfw.12306.cn").getHostAddress());
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -41,7 +45,7 @@ public class DnsUtils {
 
 
         try {
-            System.out.println(InetAddress.getByName("kyfw.12306.cn").getHostAddress());
+            logger.info(InetAddress.getByName("kyfw.12306.cn").getHostAddress());
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }

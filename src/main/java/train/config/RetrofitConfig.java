@@ -13,6 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import train.utils.Constants;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.*;
@@ -117,25 +118,31 @@ public class RetrofitConfig {
             public Response intercept(Chain chain) throws IOException {
                 final Request.Builder builder = chain.request().newBuilder();
 
-                logger.info(chain.request().url().toString());
+                String url = chain.request().url().toString();
+                logger.info(url);
 
-                //最近在学习RxJava,这里用了RxJava的相关API大家可以忽略,用自己逻辑实现即可
-                Observable.just(cookieMap)
-                        .subscribe(new Action1<HashMap<String, String>>() {
-                            @Override
-                            public void call(HashMap<String, String> map) {
-                                StringBuilder cookie = new StringBuilder();
+                if (!url.contains(Constants.QUERY_X)) {
+                    //最近在学习RxJava,这里用了RxJava的相关API大家可以忽略,用自己逻辑实现即可
+                    Observable.just(cookieMap)
+                            .subscribe(new Action1<HashMap<String, String>>() {
+                                @Override
+                                public void call(HashMap<String, String> map) {
+                                    StringBuilder cookie = new StringBuilder();
 
-                                for (Map.Entry<String, String> entry : map.entrySet()) {
-                                    cookie.append(entry.getKey());
-                                    cookie.append("=");
-                                    cookie.append(entry.getValue());
-                                    cookie.append(";");
+                                    for (Map.Entry<String, String> entry : map.entrySet()) {
+                                        cookie.append(entry.getKey());
+                                        cookie.append("=");
+                                        cookie.append(entry.getValue());
+                                        cookie.append(";");
+                                    }
+                                    cookie.append("RAIL_DEVICEID=Yr5ltfnHvq_BPruONq3k7ox9hKu_1n6gBTHFA0hrPwf-Pez1nmig7JscI-ZZQoPaVwDnKJjzZtVfDry57xXLK7tW5pEX7mm7-A_W02dg5HIfXtk_LlwxkxxTBG0lZdSyhggnyzH3UQnr1l8Je7rGXYD8PVDb2pV9;");
+                                    builder.addHeader("Cookie", cookie.toString());
                                 }
-                                cookie.append("RAIL_DEVICEID=Yr5ltfnHvq_BPruONq3k7ox9hKu_1n6gBTHFA0hrPwf-Pez1nmig7JscI-ZZQoPaVwDnKJjzZtVfDry57xXLK7tW5pEX7mm7-A_W02dg5HIfXtk_LlwxkxxTBG0lZdSyhggnyzH3UQnr1l8Je7rGXYD8PVDb2pV9;");
-                                builder.addHeader("Cookie", cookie.toString());
-                            }
-                        });
+                            });
+
+                } else {
+                    builder.addHeader("Cookie", "RAIL_DEVICEID=Yr5ltfnHvq_BPruONq3k7ox9hKu_1n6gBTHFA0hrPwf-Pez1nmig7JscI-ZZQoPaVwDnKJjzZtVfDry57xXLK7tW5pEX7mm7-A_W02dg5HIfXtk_LlwxkxxTBG0lZdSyhggnyzH3UQnr1l8Je7rGXYD8PVDb2pV9;");
+                }
                 return chain.proceed(builder.build());
             }
         });
@@ -162,7 +169,7 @@ public class RetrofitConfig {
                                 public void call(String[] cookie) {
                                     for (int i = 0; i < cookie.length; i++) {
                                         String[] name_value = cookie[i].split("=");
-                                        if(name_value.length==2){
+                                        if (name_value.length == 2) {
                                             cookieMap.put(name_value[0], name_value[1]);
                                         }
                                     }

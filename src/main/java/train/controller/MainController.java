@@ -22,7 +22,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -35,6 +34,7 @@ import train.config.TextAreaAppender;
 import train.enums.OrderScopeType;
 import train.enums.PurposeCodes;
 import train.enums.QueryType;
+import train.enums.TourFlag;
 import train.service.PingService;
 import train.service.TrainService;
 import train.utils.AlertUtils;
@@ -53,8 +53,10 @@ import java.util.*;
 @FXMLController
 public class MainController implements Initializable {
 
-    private Logger logger = LoggerFactory.getLogger(MainController.class);
-    private ApplicationContext applicationContext;
+    private final static Logger logger = LoggerFactory.getLogger(MainController.class);
+    /**
+     * 查询次数
+     */
     private int count = 0;
 
     @FXML
@@ -145,6 +147,10 @@ public class MainController implements Initializable {
     private LocalDate start_date;
     private LocalDate end_date;
 
+
+    //提交订单
+    private String secretStr;
+
     private List<String> hours = Arrays.asList(
             "00:00",
             "01:00",
@@ -204,10 +210,28 @@ public class MainController implements Initializable {
             }
         });
 
+
+        StringConverter stringConverter = new StringConverter<Station>() {
+            @Override
+            public String toString(Station object) {
+                return object.getName();
+            }
+
+            @Override
+            public Station fromString(String string) {
+                return map.get(string);
+            }
+        };
+        station_from.setConverter(stringConverter);
+        station_to.setConverter(stringConverter);
+
         trainService = retrofit.create(TrainService.class);
 
         start_date = LocalDate.now();
         end_date = start_date.plusDays(30);
+
+        date_selected = LocalDate.now();
+        date_from.setValue(date_selected);
 
         trainService.stationName(StrUtils.stationName()).enqueue(new Callback<String>() {
             @Override
@@ -230,11 +254,23 @@ public class MainController implements Initializable {
                     list.add(station);
 
                     if (station.getName().contains("宜春")) {
-                        station_from_selected = station;
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                station_from_selected = station;
+                                station_from.setValue(station_from_selected);
+                            }
+                        });
                     }
 
                     if (station.getName().contains("上海虹桥")) {
-                        station_to_selected = station;
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                station_to_selected = station;
+                                station_to.setValue(station_to_selected);
+                            }
+                        });
                     }
                 }
                 Collections.sort(list, new Comparator<Station>() {
@@ -243,24 +279,16 @@ public class MainController implements Initializable {
                         return o1.getAbbr().compareTo(o2.getAbbr());
                     }
                 });
-                ObservableList<Station> str2 = FXCollections.observableList(list);
-                StringConverter stringConverter = new StringConverter<Station>() {
+                Platform.runLater(new Runnable() {
                     @Override
-                    public String toString(Station object) {
-                        return object.getName();
+                    public void run() {
+                        ObservableList<Station> str2 = FXCollections.observableList(list);
+
+                        station_from.setItems(str2);
+
+                        station_to.setItems(str2);
                     }
-
-                    @Override
-                    public Station fromString(String string) {
-                        return map.get(string);
-                    }
-                };
-                station_from.setConverter(stringConverter);
-                station_from.setItems(str2);
-                station_to.setConverter(stringConverter);
-                station_to.setItems(str2);
-
-
+                });
             }
 
             @Override
@@ -595,6 +623,9 @@ public class MainController implements Initializable {
                 }
                 if (response.code() == 200) {
                     List<String> list = response.body().getData().getResult();
+                    if (list == null) {
+                        return;
+                    }
                     for (int i = 0; i < list.size(); i++) {
                         String[] fields = list.get(i).split("\\|");
                         if (fields.length != 36) {
@@ -642,11 +673,11 @@ public class MainController implements Initializable {
                 }
 
 
-                train_table.setItems(FXCollections.observableArrayList(trains));
-                count++;
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
+                        train_table.setItems(FXCollections.observableArrayList(trains));
+                        count++;
                         setLabelCount();
                     }
                 });
@@ -701,6 +732,18 @@ public class MainController implements Initializable {
         });
 
         host_table.setItems(FXCollections.observableList(pingHostList));
+    }
+
+
+    @FXML
+    public void submitOrderRequest() {
+        if (StringUtils.isEmpty(secretStr)) {
+            AlertUtils.showErrorAlert("请选择车次");
+            return;
+        }
+        trainService.submitOrderRequest(secretStr, date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                date_selected.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), TourFlag.单程.getVal(), PurposeCodes.成人.getVal(),
+                station_from_selected.getCode(), station_to_selected.getCode(), null);
     }
 
     @FXML

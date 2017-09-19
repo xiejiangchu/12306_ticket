@@ -11,4 +11,6 @@ public interface PingService {
     int ping(String host);
 
     Map<String, Integer> ping(List<String> hosts);
+
+    void printString(String str);
 }
