@@ -10,8 +10,29 @@ javafx:
 schedule :
   jobs :
     -
-      cronExpression : '0/3 * * * * ? '
-      dataToWrite : 第一个job
-    -
-      cronExpression : '0/6 * * * * ? '
-      dataToWrite : 第二个job
+      cronExpression : '0/15 * * * * ? '
+      dataToWrite : job 1
+#    -
+#      cronExpression : '* 0/6 * * * ? '
+#      dataToWrite : job 2
+#    -
+#      cronExpression : '* 0/3 * * * ? '
+#      dataToWrite : job 3
+#    -
+#      cronExpression : '* 0/3 * * * ? '
+#      dataToWrite : job 4
+#    -
+#      cronExpression : '* 0/6 * * * ? '
+#      dataToWrite : job 5
+#    -
+#      cronExpression : '* 0/3 * * * ? '
+#      dataToWrite : job 6
+#    -
+#      cronExpression : '* 0/3 * * * ? '
+#      dataToWrite : job 7
+#    -
+#      cronExpression : '* 0/6 * * * ? '
+#      dataToWrite : job 8
+#    -
+#      cronExpression : '* 0/3 * * * ? '
+#      dataToWrite : job 9

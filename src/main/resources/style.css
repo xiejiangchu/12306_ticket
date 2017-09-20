@@ -110,12 +110,7 @@
 }
 
 .check-box{
-    -fx-border-color: lightseagreen;
     -fx-font-size: 20;
-    -fx-border-insets: -5;
-    -fx-border-radius: 5;
-    -fx-border-style: dotted;
-    -fx-border-width: 2;
 }
 
 

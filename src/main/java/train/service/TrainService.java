@@ -16,6 +16,14 @@ public interface TrainService {
      *
      * @return
      */
+    @GET("/")
+    Call<String> test();
+
+    /**
+     * 刷票初始化
+     *
+     * @return
+     */
     @GET("/otn/leftTicket/init")
     Call<String> init();
 

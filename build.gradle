@@ -71,5 +71,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.springframework/spring-tx
     compile group: 'org.springframework', name: 'spring-tx', version: '4.3.11.RELEASE'
 
+    compile "org.jodd:jodd-http:3.9"
+
 
 }

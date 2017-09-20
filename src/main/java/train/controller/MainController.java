@@ -49,6 +49,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @FXMLController
 public class MainController implements Initializable {
@@ -672,11 +673,10 @@ public class MainController implements Initializable {
                     }
                 }
 
-
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        train_table.setItems(FXCollections.observableArrayList(trains));
+                        train_table.setItems(FXCollections.observableArrayList(filterTrain(trains)));
                         count++;
                         setLabelCount();
                     }
@@ -732,6 +732,47 @@ public class MainController implements Initializable {
         });
 
         host_table.setItems(FXCollections.observableList(pingHostList));
+    }
+
+
+    private List<Train> filterTrain(List<Train> trains) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (ck_gc.isSelected()) {
+            stringBuilder.append("G");
+        }
+        if (ck_d.isSelected()) {
+            stringBuilder.append("D");
+        }
+        if (ck_z.isSelected()) {
+            stringBuilder.append("Z");
+        }
+        if (ck_t.isSelected()) {
+            stringBuilder.append("T");
+        }
+        if (ck_k.isSelected()) {
+            stringBuilder.append("K");
+        }
+        if (ck_q.isSelected()) {
+            stringBuilder.append("QT");
+        }
+        List<Train> out = trains.stream().filter(item -> {
+            String str = item.getStation_train_code();
+            String str2 = "";
+            if (str != null && !"".equals(str)) {
+                for (int i = 0; i < str.length(); i++) {
+                    if (str.charAt(i) >= 65 && str.charAt(i) <= 90) {
+                        str2 += str.charAt(i);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            if (stringBuilder.toString().contains(str2)) {
+                return true;
+            }
+            return false;
+        }).collect(Collectors.toList());
+        return out;
     }
 
 
