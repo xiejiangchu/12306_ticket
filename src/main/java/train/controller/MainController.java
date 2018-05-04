@@ -1,5 +1,6 @@
 package train.controller;
 
+import com.alibaba.dcm.DnsCacheManipulator;
 import com.alibaba.fastjson.JSON;
 import de.felixroske.jfxsupport.FXMLController;
 import javafx.application.Platform;
@@ -22,14 +23,17 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
+import org.springframework.scheduling.annotation.Scheduled;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import train.Booter;
 import train.bean.*;
+import train.config.RetrofitConfig;
 import train.config.TextAreaAppender;
 import train.enums.OrderScopeType;
 import train.enums.PurposeCodes;
@@ -38,11 +42,14 @@ import train.enums.TourFlag;
 import train.service.PingService;
 import train.service.TrainService;
 import train.utils.AlertUtils;
-import train.utils.StrUtils;
+import train.utils.Constants;
+import train.utils.StringUtils;
 import train.view.LoginView;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -50,6 +57,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static train.utils.StringUtils.joinPassanger;
+import static train.utils.StringUtils.joinoldPassanger;
 
 @FXMLController
 public class MainController implements Initializable {
@@ -121,17 +131,15 @@ public class MainController implements Initializable {
 
     private TrainService trainService;
 
+    private TreeMap<String, PingHost> treeMap = new TreeMap<>();
 
-    private static List<String> HOSTS = Arrays.asList("182.243.62.48", "27.148.151.17",
-            "219.147.233.232", "59.44.30.36", "183.58.18.36", "14.18.201.47", "42.123.105.35",
-            "14.215.9.83", "59.49.42.252", "58.222.19.61", "101.227.66.207", "125.90.206.182",
-            "61.156.243.247", "27.159.182.50", "222.180.166.229", "202.98.156.62", "218.92.221.15",
-            "218.92.209.74", "180.97.217.77", "183.62.114.247", "183.134.9.58", "61.147.227.247", "58.222.19.72",
-            "222.245.77.74", "220.162.97.136", "182.140.236.27", "61.136.167.78", "117.23.2.85", "222.218.45.216",
-            "42.81.9.47", "125.46.22.126", "101.227.102.199", "182.106.194.107", "220.162.97.209", "111.206.186.244",
-            "58.222.42.9", "123.128.14.201", "115.231.74.76", "153.35.174.108", "221.202.204.253", "150.138.169.233",
-            "220.194.200.232", "113.207.77.192", "61.155.237.56", "124.164.8.65", "61.167.54.109", "139.215.210.59",
-            "111.62.244.177", "123.138.157.109", "117.148.165.154", "117.23.6.81", "113.107.57.43");
+
+    List<Passenger> normal_passengers;
+    //ping
+    List<PingHost> pingHostList = new ArrayList<>();
+    ObservableList<PingHost> pingHostObservableList = FXCollections.observableList(pingHostList);
+
+
     private Map<String, Station> map_code = new TreeMap<>();
     private Map<String, Station> map = new HashMap<>();
     private List<Station> list = new ArrayList<Station>();
@@ -187,6 +195,9 @@ public class MainController implements Initializable {
     @Override
     @FXML
     public void initialize(URL location, ResourceBundle resources) {
+        //ping
+        host_table.setItems(pingHostObservableList);
+
 
         setLabelCount();
         TextAreaAppender.setTextArea(log_textArea);
@@ -231,10 +242,10 @@ public class MainController implements Initializable {
         start_date = LocalDate.now();
         end_date = start_date.plusDays(30);
 
-        date_selected = LocalDate.now();
+        date_selected = LocalDate.now().plusDays(28);
         date_from.setValue(date_selected);
 
-        trainService.stationName(StrUtils.stationName()).enqueue(new Callback<String>() {
+        trainService.stationName(Constants.STATION_VERSION).enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 String str = response.body();
@@ -351,7 +362,7 @@ public class MainController implements Initializable {
         initPassengerTable();
 
 
-        host_listView.setItems(FXCollections.observableList(HOSTS));
+        host_listView.setItems(FXCollections.observableList(Constants.HOSTS));
 
 
         logger.info("init");
@@ -383,6 +394,7 @@ public class MainController implements Initializable {
         TableColumn<Train, String> col13 = new TableColumn<Train, String>("软卧");
         TableColumn<Train, String> col14 = new TableColumn<Train, String>("硬座");
         TableColumn<Train, String> col15 = new TableColumn<Train, String>("无座");
+        TableColumn<Train, String> col16 = new TableColumn<Train, String>("状态");
 
         col1.setCellValueFactory(new PropertyValueFactory<Train, String>("station_train_code"));
         col1.getStyleClass().add("text-bold");
@@ -416,8 +428,10 @@ public class MainController implements Initializable {
         col13.setCellValueFactory(new PropertyValueFactory<Train, String>("rw_num"));
         col14.setCellValueFactory(new PropertyValueFactory<Train, String>("yz_num"));
         col15.setCellValueFactory(new PropertyValueFactory<Train, String>("wz_num"));
+        col16.setCellValueFactory(new PropertyValueFactory<Train, String>("buttonTextInfo"));
 
-        train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
+        train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16);
+        train_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
     private void initOrderTable() {
@@ -456,7 +470,6 @@ public class MainController implements Initializable {
             public ObservableValue<String> call(TableColumn.CellDataFeatures<OrderDTO, String> param) {
                 OrderDTO order = param.getValue();
                 StringBuilder stringBuilder = new StringBuilder();
-
                 String name = JSON.toJSONString(order.getTickets().get(0).getStationTrainDTO());
                 return new SimpleObjectProperty<String>(name);
             }
@@ -484,16 +497,6 @@ public class MainController implements Initializable {
         TableColumn<Passenger, String> col3 = new TableColumn<Passenger, String>("身份证");
         TableColumn<Passenger, String> col4 = new TableColumn<Passenger, String>("身份证编号");
         TableColumn<Passenger, String> col5 = new TableColumn<Passenger, String>("类型");
-//        TableColumn<OrderDTO, String> col6 = new TableColumn<OrderDTO, String>("历时");
-//        TableColumn<OrderDTO, String> col7 = new TableColumn<OrderDTO, String>("商务/特等");
-//        TableColumn<OrderDTO, String> col8 = new TableColumn<OrderDTO, String>("一等");
-//        TableColumn<OrderDTO, String> col9 = new TableColumn<OrderDTO, String>("二等");
-//        TableColumn<OrderDTO, String> col10 = new TableColumn<OrderDTO, String>("高级软卧");
-//        TableColumn<OrderDTO, String> col11 = new TableColumn<OrderDTO, String>("软卧");
-//        TableColumn<OrderDTO, String> col12 = new TableColumn<OrderDTO, String>("硬卧");
-//        TableColumn<OrderDTO, String> col13 = new TableColumn<OrderDTO, String>("软卧");
-//        TableColumn<OrderDTO, String> col14 = new TableColumn<OrderDTO, String>("硬座");
-//        TableColumn<OrderDTO, String> col15 = new TableColumn<OrderDTO, String>("无座");
 
         col1.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_name"));
         col1.getStyleClass().add("text-bold");
@@ -517,26 +520,15 @@ public class MainController implements Initializable {
                 return new SimpleObjectProperty<String>(name);
             }
         });
-//        col6.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("lishi"));
-//        col7.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("tz_num"));
-//        col8.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("zy_num"));
-//        col9.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("ze_num"));
-//        col10.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("gr_num"));
-//        col11.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("rw_num"));
-//        col12.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("yw_num"));
-//        col13.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("rw_num"));
-//        col14.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("yz_num"));
-//        col15.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("wz_num"));
 
 
         passenger_table.getColumns().addAll(col1, col2, col3, col4, col5);
-//        order_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
     }
 
     private void initOrderTab() {
         Date now = DateTime.now().toDate();
         Date end = DateTime.now().plusDays(20).toDate();
-        Call<String> call = trainService.queryMyOrder(QueryType.乘车日期.getVal(), StrUtils.formatDate(now), StrUtils.formatDate(end), OrderScopeType.所有.getVal(), 10, 0, "G", null);
+        Call<String> call = trainService.queryMyOrder(QueryType.乘车日期.getVal(), StringUtils.formatDate(now), StringUtils.formatDate(end), OrderScopeType.所有.getVal(), 10, 0, "G", null);
 
         call.enqueue(new Callback<String>() {
             @Override
@@ -574,7 +566,8 @@ public class MainController implements Initializable {
             public void onResponse(Call<GetPassengerDto> call, Response<GetPassengerDto> response) {
                 if (!response.body().getData().getExMsg().contains("登录")) {
                     logger.info("获取联系人成功");
-                    ObservableList<Passenger> passengers = FXCollections.observableArrayList(response.body().getData().getNormal_passengers());
+                    normal_passengers = response.body().getData().getNormal_passengers();
+                    ObservableList<Passenger> passengers = FXCollections.observableArrayList(normal_passengers);
                     passenger_table.setItems(passengers);
                 } else {
                     Platform.runLater(new Runnable() {
@@ -608,12 +601,12 @@ public class MainController implements Initializable {
             AlertUtils.showErrorAlert("请选择日期");
             return;
         }
-
         trainService.init().execute();
 
 
         Call<FetchTrain> call = trainService.queryX(date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 station_from_selected.getCode(), station_to_selected.getCode(), PurposeCodes.成人.getVal());
+
         call.enqueue(new Callback<FetchTrain>() {
             @Override
             public void onResponse(Call<FetchTrain> call, Response<FetchTrain> response) {
@@ -623,13 +616,19 @@ public class MainController implements Initializable {
                     trains.clear();
                 }
                 if (response.code() == 200) {
-                    List<String> list = response.body().getData().getResult();
-                    if (list == null) {
+                    if (response.body().getData() == null) {
+                        logger.info("未获取到车次");
                         return;
                     }
+                    List<String> list = response.body().getData().getResult();
+                    if (list == null) {
+                        logger.info("未获取到车次");
+                        return;
+                    }
+                    logger.info("获取到车次,共{}个", list.size());
                     for (int i = 0; i < list.size(); i++) {
                         String[] fields = list.get(i).split("\\|");
-                        if (fields.length != 36) {
+                        if (fields.length != 37) {
                             continue;
                         }
                         Train train = new Train();
@@ -653,23 +652,27 @@ public class MainController implements Initializable {
                         train.to_station_no = fields[17];
                         train.is_support_card = fields[18];
                         train.controlled_train_flag = fields[19];
-                        train.gg_num = !StringUtils.isEmpty(fields[20]) ? fields[20] : "--";
-                        train.gr_num = !StringUtils.isEmpty(fields[21]) ? fields[21] : "--";
-                        train.qt_num = !StringUtils.isEmpty(fields[22]) ? fields[22] : "--";
-                        train.rw_num = !StringUtils.isEmpty(fields[23]) ? fields[23] : "--";
-                        train.rz_num = !StringUtils.isEmpty(fields[24]) ? fields[24] : "--";
-                        train.tz_num = !StringUtils.isEmpty(fields[25]) ? fields[25] : "--";
-                        train.wz_num = !StringUtils.isEmpty(fields[26]) ? fields[26] : "--";
-                        train.yb_num = !StringUtils.isEmpty(fields[27]) ? fields[27] : "--";
-                        train.yw_num = !StringUtils.isEmpty(fields[28]) ? fields[28] : "--";
-                        train.yz_num = !StringUtils.isEmpty(fields[29]) ? fields[29] : "--";
-                        train.ze_num = !StringUtils.isEmpty(fields[30]) ? fields[30] : "--";
-                        train.zy_num = !StringUtils.isEmpty(fields[31]) ? fields[31] : "--";
-                        train.swz_num = !StringUtils.isEmpty(fields[32]) ? fields[32] : "--";
-                        train.srrb_num = !StringUtils.isEmpty(fields[33]) ? fields[33] : "--";
+                        train.gg_num = !org.springframework.util.StringUtils.isEmpty(fields[20]) ? fields[20] : "--";
+                        train.gr_num = !org.springframework.util.StringUtils.isEmpty(fields[21]) ? fields[21] : "--";
+                        train.qt_num = !org.springframework.util.StringUtils.isEmpty(fields[22]) ? fields[22] : "--";
+                        train.rw_num = !org.springframework.util.StringUtils.isEmpty(fields[23]) ? fields[23] : "--";
+                        train.rz_num = !org.springframework.util.StringUtils.isEmpty(fields[24]) ? fields[24] : "--";
+                        train.tz_num = !org.springframework.util.StringUtils.isEmpty(fields[25]) ? fields[25] : "--";
+                        train.wz_num = !org.springframework.util.StringUtils.isEmpty(fields[26]) ? fields[26] : "--";
+                        train.yb_num = !org.springframework.util.StringUtils.isEmpty(fields[27]) ? fields[27] : "--";
+                        train.yw_num = !org.springframework.util.StringUtils.isEmpty(fields[28]) ? fields[28] : "--";
+                        train.yz_num = !org.springframework.util.StringUtils.isEmpty(fields[29]) ? fields[29] : "--";
+                        train.ze_num = !org.springframework.util.StringUtils.isEmpty(fields[30]) ? fields[30] : "--";
+                        train.zy_num = !org.springframework.util.StringUtils.isEmpty(fields[31]) ? fields[31] : "--";
+                        train.swz_num = !org.springframework.util.StringUtils.isEmpty(fields[32]) ? fields[32] : "--";
+                        train.srrb_num = !org.springframework.util.StringUtils.isEmpty(fields[33]) ? fields[33] : "--";
                         train.yp_ex = fields[34];
                         train.seat_types = fields[35];
-                        trains.add(train);
+                        train.secretHBStr = fields[36];
+                        train.exchange_train_flag = fields[36];
+                        if (filterTrain(train)) {
+                            trains.add(train);
+                        }
                     }
                 }
 
@@ -718,20 +721,74 @@ public class MainController implements Initializable {
 
     @FXML
     public void onPingHost(Event e) {
+        pingHostObservableList.clear();
+        rx.Observable.from(Constants.HOSTS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.immediate())
+                .subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String s) {
+                        int result = pingService.ping(s);
+                        PingHost pingHost = new PingHost();
+                        pingHost.setHost(s);
+                        pingHost.setPing(result);
+                        pingHostObservableList.add(pingHost);
+                        treeMap.put(s, pingHost);
+                    }
+                });
+    }
 
-        List<PingHost> pingHostList = new ArrayList<>();
-        rx.Observable.from(HOSTS).subscribe(new Action1<String>() {
+    @Scheduled(fixedDelay = 3000)
+    private void testPing() {
+        rx.Observable.from(Constants.HOSTS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.immediate())
+                .subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String s) {
+                        int result = pingService.ping(s);
+                        PingHost pingHost = new PingHost();
+                        pingHost.setHost(s);
+                        pingHost.setPing(result);
+                        treeMap.put(s, pingHost);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+
+                    }
+                });
+    }
+
+
+    //    @Scheduled(fixedRate = 3000)
+    public void testCron() {
+        rx.Observable.from(Constants.HOSTS).subscribe(new Action1<String>() {
             @Override
             public void call(String s) {
-                int result = pingService.ping(s);
-                PingHost pingHost = new PingHost();
-                pingHost.setHost(s);
-                pingHost.setPing(result);
-                pingHostList.add(pingHost);
+                try {
+                    logger.info("1:{}", InetAddress.getByName(Constants.DOMAIN).getHostAddress());
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+                DnsCacheManipulator.setDnsCache(Constants.DOMAIN, s);
+
+                retrofit = new RetrofitConfig().retrofitInit();
+                trainService = retrofit.create(TrainService.class);
+                try {
+                    logger.info("1:{}----{}------{}", s, InetAddress.getByName(Constants.DOMAIN).getHostAddress(), trainService.test().execute().headers().get("ct"));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
-
-        host_table.setItems(FXCollections.observableList(pingHostList));
     }
 
 
@@ -775,16 +832,96 @@ public class MainController implements Initializable {
         return out;
     }
 
+    private boolean filterTrain(Train train) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (ck_gc.isSelected()) {
+            stringBuilder.append("G");
+        }
+        if (ck_d.isSelected()) {
+            stringBuilder.append("D");
+        }
+        if (ck_z.isSelected()) {
+            stringBuilder.append("Z");
+        }
+        if (ck_t.isSelected()) {
+            stringBuilder.append("T");
+        }
+        if (ck_k.isSelected()) {
+            stringBuilder.append("K");
+        }
+        if (ck_q.isSelected()) {
+            stringBuilder.append("QT");
+        }
+        String str = train.getStation_train_code();
+        String str2 = "";
+        if (str != null && !"".equals(str)) {
+            for (int i = 0; i < str.length(); i++) {
+                if (str.charAt(i) >= 65 && str.charAt(i) <= 90) {
+                    str2 += str.charAt(i);
+                } else {
+                    break;
+                }
+            }
+        }
+        return stringBuilder.toString().contains(str2);
+    }
+
+    private void checkUser() {
+        trainService.checkUser();
+    }
+
 
     @FXML
-    public void submitOrderRequest() {
-        if (StringUtils.isEmpty(secretStr)) {
+    public void onSubmitOrderRequest() throws IOException {
+        if (train_table.getSelectionModel().getSelectedCells() == null || train_table.getSelectionModel().getSelectedCells().size() == 0) {
             AlertUtils.showErrorAlert("请选择车次");
             return;
         }
-        trainService.submitOrderRequest(secretStr, date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                date_selected.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), TourFlag.单程.getVal(), PurposeCodes.成人.getVal(),
-                station_from_selected.getCode(), station_to_selected.getCode(), null);
+        int index = train_table.getSelectionModel().getSelectedCells().get(0).getRow();
+        Train train = trains.get(index);
+        secretStr = train.getSecretStr();
+        if (org.springframework.util.StringUtils.isEmpty(secretStr)) {
+            AlertUtils.showErrorAlert("请选择车次");
+            return;
+        }
+
+        CheckUser checkUser_result = trainService.checkUser().execute().body();
+        if (!checkUser_result.getData().isFlag()) {
+            AlertUtils.showErrorAlert("未登录");
+            return;
+        }
+        Response<String> submitOrderRequest_result = trainService.submitOrderRequest(secretStr,
+                date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                TourFlag.单程.getVal(),
+                PurposeCodes.成人.getVal(),
+                station_from_selected.getName(),
+                station_to_selected.getName(),
+                "").execute();
+
+        Response<String> initDc_result = trainService.initDc().execute();
+
+        int position = initDc_result.body().indexOf("globalRepeatSubmitToken");
+        int position_start = initDc_result.body().indexOf("'", position) + 1;
+        int position_end = initDc_result.body().indexOf("'", position_start) - 1;
+
+        String token = String.valueOf(initDc_result.body().subSequence(position_start, position_end));
+
+        initPassengerTab();
+
+        String passengerTicketStr = joinPassanger(normal_passengers.get(0), normal_passengers.get(1));
+        String oldPassengerStr = joinoldPassanger(normal_passengers.get(0), normal_passengers.get(1));
+
+
+        Response<String> checkOrderInfo_result = trainService.checkOrderInfo(Constants.CANCEL_FLAG, Constants.BED_LEVEL_ORDER_NUM,
+                passengerTicketStr, oldPassengerStr, TourFlag.单程.getVal(),
+                null, "1", null, token).execute();
+
+
+//        Response<String> getQueueCount_result = trainService.getQueueCount(date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+//                trains.get(0).getTrain_no(),).execute();
+
+
     }
 
     @FXML

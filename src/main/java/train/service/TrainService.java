@@ -16,7 +16,7 @@ public interface TrainService {
      *
      * @return
      */
-    @GET("/")
+    @GET("/otn/index/init")
     Call<String> test();
 
     /**
@@ -42,13 +42,14 @@ public interface TrainService {
             "Referer:https://kyfw.12306.cn/otn/leftTicket/init",
             "Host:kyfw.12306.cn",
             "If-Modified-Since:0",
-            "X-Requested-With:XMLHttpRequest"
+            "X-Requested-With:XMLHttpRequest",
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36"
     })
     @GET(Constants.QUERY_X)
     Call<FetchTrain> queryX(@Query("leftTicketDTO.train_date") String train_date,
                             @Query("leftTicketDTO.from_station") String from_station,
                             @Query("leftTicketDTO.to_station") String to_station,
-                            @Query("leftTicketDTO.purpose_codes") String purpose_codes);
+                            @Query("purpose_codes") String purpose_codes);
 
 
     /**
@@ -60,7 +61,7 @@ public interface TrainService {
      * @return
      */
     @Headers({
-            "User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36",
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36",
             "Access-Control-Allow-Credentials:true"
     })
     @FormUrlEncoded
@@ -195,7 +196,7 @@ public interface TrainService {
      * @return
      */
     @POST("/otn/uamauthclient")
-    Call<String> uamauthclient(@Query("tk") String tk);
+    Call<UamAuthClientBean> uamauthclient(@Query("tk") String tk);
 
 
     /**
@@ -211,9 +212,21 @@ public interface TrainService {
      *
      * @return
      */
+    @Headers({
+            "Cache-Control:no-cache",
+            "If-Modified-Since:0",
+            "X-Requested-With:XMLHttpRequest",
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36"
+    })
     @POST("/otn/login/checkUser")
     Call<CheckUser> checkUser();
 
+    @Headers({
+            "Cache-Control:no-cache",
+            "If-Modified-Since:0",
+            "X-Requested-With:XMLHttpRequest",
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36"
+    })
     @FormUrlEncoded
     @POST("/otn/leftTicket/submitOrderRequest")
     Call<String> submitOrderRequest(@Field("secretStr") String secretStr,
@@ -224,4 +237,105 @@ public interface TrainService {
                                     @Field("query_from_station_name") String query_from_station_name,
                                     @Field("query_to_station_name") String query_to_station_name,
                                     @Field("undefined") String undefined);
+
+
+    /**
+     * 获取 var globalRepeatSubmitToken = '20463d0de07ae8536f4752ef4c4590eb';
+     *
+     * @return
+     */
+    @GET("/otn/confirmPassenger/initDc")
+    Call<String> initDc();
+
+    /**
+     * 在上面的信息中座位编号指的是，一等座、二等座等的编码，从ticketInfoForPassengerForm.limitBuySeatTicketDTO.seat_type_codes属性中选择获取。
+     * 票类型指的是，成人票，学生票等的编码，可以从ticketInfoForPassengerForm.limitBuySeatTicketDTO.ticket_type_codes属性中选择获取。
+     * <p>
+     * 证件类型指的是二代身份证，学生证，签证等的编码，可以从ticketInfoForPassengerForm.cardTypes属性中选择获取。
+     *
+     * @param cancel_flag
+     * @param bed_level_order_num
+     * @param passengerTicketStr  座位编号,0,票类型,乘客名,证件类型,证件号,手机号码,保存常用联系人(Y或N)  'M,0,1,谢江初,1,362201198910185014,,N_M,0,1,谭斌,1,36220119900203563X,,N',
+     * @param oldPassengerStr     乘客名,证件类型,证件号,乘客类型  '谢江初,1,362201198910185014,1_谭斌,1,36220119900203563X,1_',
+     * @param tour_flag           'dc'
+     * @param randCode
+     * @param whatsSelect
+     * @param _json_att
+     * @param REPEAT_SUBMIT_TOKEN add13c27f533769120f7f8ad68d051e6
+     * @return
+     */
+    @FormUrlEncoded
+    @POST("/otn/confirmPassenger/checkOrderInfo")
+    Call<String> checkOrderInfo(@Field("cancel_flag") String cancel_flag,
+                                @Field("bed_level_order_num") String bed_level_order_num,
+                                @Field("passengerTicketStr") String passengerTicketStr,
+                                @Field("oldPassengerStr") String oldPassengerStr,
+                                @Field("tour_flag") String tour_flag,
+                                @Field("randCode") String randCode,
+                                @Field("whatsSelect") String whatsSelect,
+                                @Field("_json_att") String _json_att,
+                                @Field("REPEAT_SUBMIT_TOKEN") String REPEAT_SUBMIT_TOKEN);
+
+    /**
+     * @param train_date
+     * @param train_no
+     * @param stationTrainCode
+     * @param seatType
+     * @param fromStationTelecode
+     * @param toStationTelecode
+     * @param leftTicket
+     * @param purpose_codes
+     * @param train_location
+     * @param isCheckOrderInfo
+     * @return
+     */
+    @FormUrlEncoded
+    @POST("/otn/confirmPassenger/getQueueCount")
+    Call<String> getQueueCount(@Field("train_date") String train_date,
+                               @Field("train_no") String train_no,
+                               @Field("stationTrainCode") String stationTrainCode,
+                               @Field("seatType") String seatType,
+                               @Field("fromStationTelecode") String fromStationTelecode,
+                               @Field("toStationTelecode") String toStationTelecode,
+                               @Field("leftTicket") String leftTicket,
+                               @Field("purpose_codes") String purpose_codes,
+                               @Field("train_location") String train_location,
+                               @Field("isCheckOrderInfo") String isCheckOrderInfo);
+
+    /**
+     * @param passengerTicketStr
+     * @param oldPassengerStr
+     * @param randCode
+     * @param purpose_codes
+     * @param key_check_isChange
+     * @param leftTicketStr
+     * @param train_location
+     * @param choose_seats
+     * @param seatDetailType
+     * @param whatsSelect
+     * @param dwAll              N/Y
+     * @return
+     */
+    @POST("/otn/confirmPassenger/confirmSingleForQueue")
+    Call<String> confirmSingleForQueue(@Field("passengerTicketStr") String passengerTicketStr,
+                                       @Field("oldPassengerStr") String oldPassengerStr,
+                                       @Field("randCode") String randCode,
+                                       @Field("purpose_codes") String purpose_codes,
+                                       @Field("key_check_isChange") String key_check_isChange,
+                                       @Field("leftTicketStr") String leftTicketStr,
+                                       @Field("train_location") String train_location,
+                                       @Field("choose_seats") String choose_seats,
+                                       @Field("seatDetailType") String seatDetailType,
+                                       @Field("whatsSelect") String whatsSelect,
+                                       @Field("dwAll") String dwAll);
+
+    /**
+     * @param random   Date().getTime()
+     * @param tourFlag
+     * @return
+     */
+    @FormUrlEncoded
+    @POST("/otn/confirmPassenger/queryOrderWaitTime")
+    Call<String> queryOrderWaitTime(@Query("random") String random,
+                                    @Field("tourFlag") String tourFlag);
 }

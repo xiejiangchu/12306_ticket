@@ -3,9 +3,7 @@ package train.utils;
 import com.alibaba.dcm.DnsCacheManipulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 import java.net.InetAddress;
@@ -47,36 +45,34 @@ public class DnsUtils {
 
         DnsCacheManipulator.setDnsCache("kyfw.12306.cn", "115.239.210.27");
 
-//       rx.Observable.from(HOSTS).subscribe(new Action1<String>() {
-//           @Override
-//           public void call(String s) {
-//               DnsCacheManipulator.setDnsCache("kyfw.12306.cn", s);
-//               try {
-//                   Thread.currentThread().sleep(1000);
-//               } catch (InterruptedException e) {
-//                   e.printStackTrace();
-//               }
-//               try {
-//                   logger.info(InetAddress.getByName("kyfw.12306.cn").getHostAddress());
-//               } catch (UnknownHostException e) {
-//                   e.printStackTrace();
-//               }
-//           }
-//       });
+        rx.Observable.from(HOSTS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.immediate())
+                .subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String s) {
+                        DnsCacheManipulator.setDnsCache("kyfw.12306.cn", s);
+                        try {
+                            logger.info(InetAddress.getByName("kyfw.12306.cn").getHostAddress());
+                        } catch (UnknownHostException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
 
-        Observable.from(HOSTS).map(new Func1<String, String>() {
-            @Override
-            public String call(String s) {
-                return s+" - "+PingUtils.ping(s);
-            }
-        }).subscribeOn(Schedulers.newThread()).subscribe(new Action1<String>() {
-            @Override
-            public void call(String integer) {
-                System.out.println(integer);
-            }
-        });
 
         Thread.currentThread().sleep(5000);
 
+//        Observable.from(HOSTS).map(new Func1<String, String>() {
+//            @Override
+//            public String call(String s) {
+//                return s+" - "+PingUtils.ping(s);
+//            }
+//        }).subscribeOn(Schedulers.newThread()).subscribe(new Action1<String>() {
+//            @Override
+//            public void call(String integer) {
+//                System.out.println(integer);
+//            }
+//        });
     }
 }

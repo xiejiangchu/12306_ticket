@@ -9,4 +9,6 @@ import de.felixroske.jfxsupport.FXMLView;
 
 @FXMLView(title="登录12306")
 public class LoginView extends AbstractFxmlView {
+
+
 }

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import train.utils.Constants;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -28,7 +29,7 @@ public class RetrofitConfig {
 
         return new Retrofit.Builder()
                 .client(OkHttpUtils.builder().build())
-                .baseUrl("https://kyfw.12306.cn/")
+                .baseUrl(Constants.BASE_URL)
                 .addConverterFactory(StringConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(initGson()))
                 .build();

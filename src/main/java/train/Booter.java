@@ -23,6 +23,7 @@ public class Booter extends AbstractJavaFxApplicationSupport implements Applicat
     private static AnnotationConfigApplicationContext application;
 
     public static void main(String[] args) {
+
         MySplashScreen mySplashScreen = new MySplashScreen();
         launchApp(Booter.class, MainView.class, mySplashScreen, args);
     }

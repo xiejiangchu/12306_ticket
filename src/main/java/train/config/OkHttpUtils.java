@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by xie on 17/9/20.
@@ -30,9 +31,14 @@ public class OkHttpUtils {
 
     private final static String COOKIE_FILE = "cookie.properties";
 
+    private final static String COOKIE_DEFAULT = "";
+
 
     public static OkHttpClient.Builder builder() {
         OkHttpClient.Builder okHttpBuilder = new OkHttpClient.Builder();
+        okHttpBuilder.connectTimeout(3, TimeUnit.SECONDS)
+                .readTimeout(3, TimeUnit.SECONDS)
+                .writeTimeout(3, TimeUnit.SECONDS).build();
         try {
             okHttpBuilder.sslSocketFactory(getSSLSocketFactory()).hostnameVerifier(new HostnameVerifier() {
                 @Override
@@ -77,13 +83,13 @@ public class OkHttpUtils {
                                         cookie.append(entry.getValue());
                                         cookie.append(";");
                                     }
-                                    cookie.append("RAIL_DEVICEID=Yr5ltfnHvq_BPruONq3k7ox9hKu_1n6gBTHFA0hrPwf-Pez1nmig7JscI-ZZQoPaVwDnKJjzZtVfDry57xXLK7tW5pEX7mm7-A_W02dg5HIfXtk_LlwxkxxTBG0lZdSyhggnyzH3UQnr1l8Je7rGXYD8PVDb2pV9;");
+                                    cookie.append(COOKIE_DEFAULT);
                                     builder.addHeader("Cookie", cookie.toString());
                                 }
                             });
 
                 } else {
-                    builder.addHeader("Cookie", "RAIL_DEVICEID=Yr5ltfnHvq_BPruONq3k7ox9hKu_1n6gBTHFA0hrPwf-Pez1nmig7JscI-ZZQoPaVwDnKJjzZtVfDry57xXLK7tW5pEX7mm7-A_W02dg5HIfXtk_LlwxkxxTBG0lZdSyhggnyzH3UQnr1l8Je7rGXYD8PVDb2pV9;");
+                    builder.addHeader("Cookie", COOKIE_DEFAULT);
                 }
                 return chain.proceed(builder.build());
             }
@@ -109,9 +115,9 @@ public class OkHttpUtils {
                             .subscribe(new Action1<String[]>() {
                                 @Override
                                 public void call(String[] cookie) {
-                                    for (int i = 0; i < cookie.length; i++) {
+                                    for (int i = 0; i < 1; i++) {
                                         String[] name_value = cookie[i].split("=");
-                                        if (name_value.length == 2) {
+                                        if (name_value.length == 2 && !name_value[0].equalsIgnoreCase("path")) {
                                             cookieMap.put(name_value[0], name_value[1]);
                                         }
                                     }
@@ -165,7 +171,6 @@ public class OkHttpUtils {
             for (Map.Entry<String, String> entry : cookieMap.entrySet()) {
                 properties.put(entry.getKey(), entry.getValue());
             }
-            properties.put("RAIL_DEVICEID", "b5MkrO5u2zTPmz-JlEbCccu5rJ68F-oJ0tk1WSYXKn9DaVDisPEQKSx6cApl-aPccKToOQGkJPPXbtNkltQVl_yYzMrmIYhjU5-Y6yCdIDldkrTL582N-rnViCzOlsfUQsPzqU-oD-1ZsXGV5qkYK8Vh_O8wdhYd");
             properties.store(out, DateTime.now().toString());
         } catch (FileNotFoundException e) {
 

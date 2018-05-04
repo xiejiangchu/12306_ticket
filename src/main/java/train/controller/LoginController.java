@@ -25,6 +25,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import train.bean.CaptureResult;
 import train.bean.MyPoint2D;
+import train.bean.UamAuthClientBean;
 import train.service.TrainService;
 import train.utils.AlertUtils;
 
@@ -73,8 +74,11 @@ public class LoginController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        drawCanvas();
+        username.setText("xie_jc");
+        password.setText("q19870819a");
         trainService = retrofit.create(TrainService.class);
+        fetchImage();
+
     }
 
     @FXML
@@ -168,14 +172,15 @@ public class LoginController implements Initializable {
 
 
         logger.info("========================   uamauthclient    ========================");
-        String tk = trainService.uamauthclient(newapptk).execute().body();
+        UamAuthClientBean tk = trainService.uamauthclient(newapptk).execute().body();
         if (StringUtils.isEmpty(tk)) {
             logger.info("登录失败");
         } else {
-            logger.info("登陆成功,tk" + tk);
+            logger.info("登陆成功,{}" + JSON.toJSONString(tk));
             Stage stage = (Stage) canvas.getScene().getWindow();
             stage.close();
         }
+        logger.info("========================   uamauthclient   end ========================");
         btn_login.setDisable(false);
     }
 
@@ -186,8 +191,6 @@ public class LoginController implements Initializable {
 
     private void fetchImage() {
         points.clear();
-
-
         try {
             trainService.init().execute();
             trainService.uamtk("otn").execute();

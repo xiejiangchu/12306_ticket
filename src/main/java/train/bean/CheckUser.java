@@ -7,7 +7,7 @@ public class CheckUser extends BaseDto {
 
     private CheckUserBean data;
 
-    class CheckUserBean {
+    public class CheckUserBean {
         private boolean flag;
 
         public boolean isFlag() {

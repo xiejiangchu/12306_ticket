@@ -13,7 +13,6 @@ public class PingUtils {
             InetAddress inet = InetAddress.getByName(host);
             long finish = 0;
             long start = new GregorianCalendar().getTimeInMillis();
-
             if (inet.isReachable(Constants.TIME_OUT)) {
                 finish = new GregorianCalendar().getTimeInMillis();
                 return (int) (finish - start);
