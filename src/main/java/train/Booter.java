@@ -11,6 +11,14 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.scheduling.annotation.EnableScheduling;
 import train.view.MainView;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.Locale;
+
 /**
  * Created by xie on 17/9/12.
  */
@@ -23,7 +31,6 @@ public class Booter extends AbstractJavaFxApplicationSupport implements Applicat
     private static AnnotationConfigApplicationContext application;
 
     public static void main(String[] args) {
-
         MySplashScreen mySplashScreen = new MySplashScreen();
         launchApp(Booter.class, MainView.class, mySplashScreen, args);
     }

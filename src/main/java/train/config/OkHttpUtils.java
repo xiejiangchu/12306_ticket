@@ -1,8 +1,6 @@
 package train.config;
 
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import okhttp3.*;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import rx.Observable;
@@ -70,7 +68,6 @@ public class OkHttpUtils {
                 final Request.Builder builder = chain.request().newBuilder();
                 String url = chain.request().url().toString();
                 if (!url.contains(Constants.QUERY_X)) {
-                    //最近在学习RxJava,这里用了RxJava的相关API大家可以忽略,用自己逻辑实现即可
                     Observable.just(cookieMap)
                             .subscribe(new Action1<HashMap<String, String>>() {
                                 @Override

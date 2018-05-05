@@ -33,13 +33,4 @@ public class TicketServiceImpl implements TicketService {
         trainService = retrofit.create(TrainService.class);
     }
 
-    @Override
-    public void startCheckUser() {
-        trainService.checkUser();
-    }
-
-    @Override
-    public void stopCheckUser() {
-
-    }
 }

@@ -19,6 +19,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.util.StringConverter;
+import okhttp3.ResponseBody;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +36,7 @@ import train.Booter;
 import train.bean.*;
 import train.config.RetrofitConfig;
 import train.config.TextAreaAppender;
-import train.enums.OrderScopeType;
-import train.enums.PurposeCodes;
-import train.enums.QueryType;
-import train.enums.TourFlag;
+import train.enums.*;
 import train.service.PingService;
 import train.service.TrainService;
 import train.utils.AlertUtils;
@@ -46,25 +44,33 @@ import train.utils.Constants;
 import train.utils.StringUtils;
 import train.view.LoginView;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static train.utils.StringUtils.joinPassanger;
 import static train.utils.StringUtils.joinoldPassanger;
+import static train.utils.StringUtils.stringToUnicode;
 
 @FXMLController
 public class MainController implements Initializable {
 
     private final static Logger logger = LoggerFactory.getLogger(MainController.class);
+    private final static String CAPTURE_NAME = "capture-ticket.jpeg";
     /**
      * 查询次数
      */
@@ -866,10 +872,6 @@ public class MainController implements Initializable {
         return stringBuilder.toString().contains(str2);
     }
 
-    private void checkUser() {
-        trainService.checkUser();
-    }
-
 
     @FXML
     public void onSubmitOrderRequest() throws IOException {
@@ -885,42 +887,100 @@ public class MainController implements Initializable {
             return;
         }
 
-        CheckUser checkUser_result = trainService.checkUser().execute().body();
+        Response<ResponseBody> getPassCodeNew_result = trainService.getPassCodeNew(Constants.PASSENGER, Constants.RANDP).execute();
+        File file = new File(CAPTURE_NAME);
+        InputStream in = null;
+        FileOutputStream out = null;
+
+        try {
+            in = getPassCodeNew_result.body().byteStream();
+            out = new FileOutputStream(file);
+            int c;
+            while ((c = in.read()) != -1) {
+                out.write(c);
+            }
+        } catch (IOException e) {
+
+        } finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+                if (out != null) {
+                    out.close();
+                }
+            } catch (Exception e) {
+
+            }
+        }
+
+        CheckUser checkUser_result = trainService.checkUser("").execute().body();
         if (!checkUser_result.getData().isFlag()) {
             AlertUtils.showErrorAlert("未登录");
             return;
         }
-        Response<String> submitOrderRequest_result = trainService.submitOrderRequest(secretStr,
+
+
+        Response<BaseDto> submitOrderRequest_result = trainService.submitOrderRequest(secretStr,
                 date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 TourFlag.单程.getVal(),
                 PurposeCodes.成人.getVal(),
                 station_from_selected.getName(),
                 station_to_selected.getName(),
-                "").execute();
+                null).execute();
+
+        if (!submitOrderRequest_result.body().isStatus()) {
+            AlertUtils.showErrorAlert(submitOrderRequest_result.body().getMessages().toString());
+            return;
+        }
 
         Response<String> initDc_result = trainService.initDc().execute();
 
         int position = initDc_result.body().indexOf("globalRepeatSubmitToken");
         int position_start = initDc_result.body().indexOf("'", position) + 1;
-        int position_end = initDc_result.body().indexOf("'", position_start) - 1;
+        int position_end = initDc_result.body().indexOf("'", position_start);
 
         String token = String.valueOf(initDc_result.body().subSequence(position_start, position_end));
 
         initPassengerTab();
 
-        String passengerTicketStr = joinPassanger(normal_passengers.get(0), normal_passengers.get(1));
-        String oldPassengerStr = joinoldPassanger(normal_passengers.get(0), normal_passengers.get(1));
+        String passengerTicketStr = joinPassanger(normal_passengers.get(0));
+        String oldPassengerStr = joinoldPassanger(normal_passengers.get(0)) + "_";
 
 
-        Response<String> checkOrderInfo_result = trainService.checkOrderInfo(Constants.CANCEL_FLAG, Constants.BED_LEVEL_ORDER_NUM,
+        CheckOrderInfoDto checkOrderInfo_result = trainService.checkOrderInfo(Constants.CANCEL_FLAG, Constants.BED_LEVEL_ORDER_NUM,
                 passengerTicketStr, oldPassengerStr, TourFlag.单程.getVal(),
-                null, "1", null, token).execute();
+                "", "1", "", token).execute().body();
 
+        logger.info("{}", JSON.toJSONString(checkOrderInfo_result));
 
-//        Response<String> getQueueCount_result = trainService.getQueueCount(date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-//                trains.get(0).getTrain_no(),).execute();
+        if (!checkOrderInfo_result.getData().isSubmitStatus()) {
+            AlertUtils.showErrorAlert(checkOrderInfo_result.getMessages().toString());
+            return;
+        }
+        String token_ypInfoDetail = StringUtils.match(initDc_result.body(), "'ypInfoDetail'");
+        String train_location = StringUtils.match2(initDc_result.body(), "'train_location'");
+        String purpose_codes = StringUtils.match(initDc_result.body(), "'purpose_codes'");
+        ZoneId zoneId = ZoneId.systemDefault();
+        LocalDate localDate = date_selected;
+        ZonedDateTime zdt = localDate.atStartOfDay(zoneId);
+        Date date = Date.from(zdt.toInstant());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd yyyy 00:00:00 'GMT'Z (中国标准时间)", Locale.ENGLISH);
 
+        Response<String> getQueueCount_result = trainService.getQueueCount(
+                dateFormat.format(date),
+                train.getTrain_no(),
+                train.getStation_train_code(),
+                SeatType.二等座.getVal(),
+                train.getFrom_station_telecode(),
+                train.getTo_station_telecode(),
+                token_ypInfoDetail,
+                purpose_codes,
+                train_location,
+                checkOrderInfo_result.getData().getIsCheckOrderInfo() == null ? "" : checkOrderInfo_result.getData().getIsCheckOrderInfo()
+        ).execute();
+        logger.info("{}", getQueueCount_result);
 
     }
 

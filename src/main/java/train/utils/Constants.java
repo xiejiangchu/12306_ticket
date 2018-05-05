@@ -18,6 +18,8 @@ public class Constants {
     public final static String BASE_URL = "https://kyfw.12306.cn";
     public final static String CANCEL_FLAG = "2";
     public final static String BED_LEVEL_ORDER_NUM = "000000000000000000000000000000";
+    public final static String PASSENGER = "passenger";
+    public final static String RANDP = "randp";
 
     public final static List<String> HOSTS = Arrays.asList("110.88.145.95",
             "183.47.216.93",

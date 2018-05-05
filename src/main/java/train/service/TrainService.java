@@ -176,9 +176,9 @@ public interface TrainService {
      */
     @FormUrlEncoded
     @POST("/passport/web/login")
-    Call<String> login(@Field("username") String username,
-                       @Field("password") String password,
-                       @Field("appid") String appid);
+    Call<String> login(@Field(value = "username", encoded = true) String username,
+                       @Field(value = "password", encoded = true) String password,
+                       @Field(value = "appid", encoded = true) String appid);
 
     /**
      * uamtk
@@ -207,6 +207,7 @@ public interface TrainService {
     @POST("/otn/confirmPassenger/getPassengerDTOs")
     Call<GetPassengerDto> getPassengerDTOs();
 
+
     /**
      * 检查用户是否登陆
      *
@@ -218,8 +219,14 @@ public interface TrainService {
             "X-Requested-With:XMLHttpRequest",
             "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36"
     })
+
+    @GET("/otn/passcodeNew/getPassCodeNew")
+    Call<ResponseBody> getPassCodeNew(@Query("module") String module,
+                                      @Query("rand") String rand);
+
+    @FormUrlEncoded
     @POST("/otn/login/checkUser")
-    Call<CheckUser> checkUser();
+    Call<CheckUser> checkUser(@Field(value = "_json_att", encoded = true) String _json_att);
 
     @Headers({
             "Cache-Control:no-cache",
@@ -229,14 +236,25 @@ public interface TrainService {
     })
     @FormUrlEncoded
     @POST("/otn/leftTicket/submitOrderRequest")
-    Call<String> submitOrderRequest(@Field("secretStr") String secretStr,
-                                    @Field("train_date") String train_date,
-                                    @Field("back_train_date") String back_train_date,
-                                    @Field("tour_flag") String tour_flag,
-                                    @Field("purpose_codes") String purpose_codes,
-                                    @Field("query_from_station_name") String query_from_station_name,
-                                    @Field("query_to_station_name") String query_to_station_name,
-                                    @Field("undefined") String undefined);
+    Call<BaseDto> submitOrderRequest(@Field(value = "secretStr", encoded = true) String secretStr,
+                                     @Field(value = "train_date", encoded = true) String train_date,
+                                     @Field(value = "back_train_date", encoded = true) String back_train_date,
+                                     @Field(value = "tour_flag", encoded = true) String tour_flag,
+                                     @Field(value = "purpose_codes", encoded = true) String purpose_codes,
+                                     @Field(value = "query_from_station_name", encoded = true) String query_from_station_name,
+                                     @Field(value = "query_to_station_name", encoded = true) String query_to_station_name,
+                                     @Field(value = "undefined", encoded = true) String undefined);
+
+
+    @POST("/otn/leftTicket/submitOrderRequest")
+    Call<String> submitOrderRequest2(@Field(value = "secretStr", encoded = true) String secretStr,
+                                     @Field(value = "train_date", encoded = true) String train_date,
+                                     @Field(value = "back_train_date", encoded = true) String back_train_date,
+                                     @Field(value = "tour_flag", encoded = true) String tour_flag,
+                                     @Field(value = "purpose_codes", encoded = true) String purpose_codes,
+                                     @Field(value = "query_from_station_name", encoded = true) String query_from_station_name,
+                                     @Field(value = "query_to_station_name", encoded = true) String query_to_station_name,
+                                     @Field(value = "undefined", encoded = true) String undefined);
 
 
     /**
@@ -264,17 +282,23 @@ public interface TrainService {
      * @param REPEAT_SUBMIT_TOKEN add13c27f533769120f7f8ad68d051e6
      * @return
      */
+    @Headers({
+            "Cache-Control:no-cache",
+            "If-Modified-Since:0",
+            "X-Requested-With:XMLHttpRequest",
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36"
+    })
     @FormUrlEncoded
     @POST("/otn/confirmPassenger/checkOrderInfo")
-    Call<String> checkOrderInfo(@Field("cancel_flag") String cancel_flag,
-                                @Field("bed_level_order_num") String bed_level_order_num,
-                                @Field("passengerTicketStr") String passengerTicketStr,
-                                @Field("oldPassengerStr") String oldPassengerStr,
-                                @Field("tour_flag") String tour_flag,
-                                @Field("randCode") String randCode,
-                                @Field("whatsSelect") String whatsSelect,
-                                @Field("_json_att") String _json_att,
-                                @Field("REPEAT_SUBMIT_TOKEN") String REPEAT_SUBMIT_TOKEN);
+    Call<CheckOrderInfoDto> checkOrderInfo(@Field(value = "cancel_flag", encoded = true) String cancel_flag,
+                                           @Field(value = "bed_level_order_num", encoded = true) String bed_level_order_num,
+                                           @Field(value = "passengerTicketStr", encoded = true) String passengerTicketStr,
+                                           @Field(value = "oldPassengerStr", encoded = true) String oldPassengerStr,
+                                           @Field(value = "tour_flag", encoded = true) String tour_flag,
+                                           @Field(value = "randCode", encoded = true) String randCode,
+                                           @Field(value = "whatsSelect", encoded = true) String whatsSelect,
+                                           @Field(value = "_json_att", encoded = true) String _json_att,
+                                           @Field(value = "REPEAT_SUBMIT_TOKEN", encoded = true) String REPEAT_SUBMIT_TOKEN);
 
     /**
      * @param train_date
@@ -289,18 +313,23 @@ public interface TrainService {
      * @param isCheckOrderInfo
      * @return
      */
+    @Headers({
+            "Cache-Control:no-cache",
+            "X-Requested-With:XMLHttpRequest",
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36"
+    })
     @FormUrlEncoded
     @POST("/otn/confirmPassenger/getQueueCount")
-    Call<String> getQueueCount(@Field("train_date") String train_date,
-                               @Field("train_no") String train_no,
-                               @Field("stationTrainCode") String stationTrainCode,
-                               @Field("seatType") String seatType,
-                               @Field("fromStationTelecode") String fromStationTelecode,
-                               @Field("toStationTelecode") String toStationTelecode,
-                               @Field("leftTicket") String leftTicket,
-                               @Field("purpose_codes") String purpose_codes,
-                               @Field("train_location") String train_location,
-                               @Field("isCheckOrderInfo") String isCheckOrderInfo);
+    Call<String> getQueueCount(@Field(value = "train_date", encoded = true) String train_date,
+                               @Field(value = "train_no", encoded = true) String train_no,
+                               @Field(value = "stationTrainCode", encoded = true) String stationTrainCode,
+                               @Field(value = "seatType", encoded = true) String seatType,
+                               @Field(value = "fromStationTelecode", encoded = true) String fromStationTelecode,
+                               @Field(value = "toStationTelecode", encoded = true) String toStationTelecode,
+                               @Field(value = "leftTicket", encoded = true) String leftTicket,
+                               @Field(value = "purpose_codes", encoded = true) String purpose_codes,
+                               @Field(value = "train_location", encoded = true) String train_location,
+                               @Field(value = "isCheckOrderInfo", encoded = true) String isCheckOrderInfo);
 
     /**
      * @param passengerTicketStr
@@ -316,18 +345,24 @@ public interface TrainService {
      * @param dwAll              N/Y
      * @return
      */
+    @Headers({
+            "Cache-Control:no-cache",
+            "If-Modified-Since:0",
+            "X-Requested-With:XMLHttpRequest",
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36"
+    })
     @POST("/otn/confirmPassenger/confirmSingleForQueue")
-    Call<String> confirmSingleForQueue(@Field("passengerTicketStr") String passengerTicketStr,
-                                       @Field("oldPassengerStr") String oldPassengerStr,
-                                       @Field("randCode") String randCode,
-                                       @Field("purpose_codes") String purpose_codes,
-                                       @Field("key_check_isChange") String key_check_isChange,
-                                       @Field("leftTicketStr") String leftTicketStr,
-                                       @Field("train_location") String train_location,
-                                       @Field("choose_seats") String choose_seats,
-                                       @Field("seatDetailType") String seatDetailType,
-                                       @Field("whatsSelect") String whatsSelect,
-                                       @Field("dwAll") String dwAll);
+    Call<String> confirmSingleForQueue(@Field(value = "passengerTicketStr", encoded = true) String passengerTicketStr,
+                                       @Field(value = "oldPassengerStr", encoded = true) String oldPassengerStr,
+                                       @Field(value = "randCode", encoded = true) String randCode,
+                                       @Field(value = "purpose_codes", encoded = true) String purpose_codes,
+                                       @Field(value = "key_check_isChange", encoded = true) String key_check_isChange,
+                                       @Field(value = "leftTicketStr", encoded = true) String leftTicketStr,
+                                       @Field(value = "train_location", encoded = true) String train_location,
+                                       @Field(value = "choose_seats", encoded = true) String choose_seats,
+                                       @Field(value = "seatDetailType", encoded = true) String seatDetailType,
+                                       @Field(value = "whatsSelect", encoded = true) String whatsSelect,
+                                       @Field(value = "dwAll", encoded = true) String dwAll);
 
     /**
      * @param random   Date().getTime()
@@ -336,6 +371,6 @@ public interface TrainService {
      */
     @FormUrlEncoded
     @POST("/otn/confirmPassenger/queryOrderWaitTime")
-    Call<String> queryOrderWaitTime(@Query("random") String random,
-                                    @Field("tourFlag") String tourFlag);
+    Call<String> queryOrderWaitTime(@Query(value = "random", encoded = true) String random,
+                                    @Field(value = "tourFlag", encoded = true) String tourFlag);
 }
