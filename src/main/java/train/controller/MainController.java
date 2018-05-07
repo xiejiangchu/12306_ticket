@@ -50,7 +50,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -64,7 +63,6 @@ import java.util.stream.Collectors;
 
 import static train.utils.StringUtils.joinPassanger;
 import static train.utils.StringUtils.joinoldPassanger;
-import static train.utils.StringUtils.stringToUnicode;
 
 @FXMLController
 public class MainController implements Initializable {
@@ -243,7 +241,15 @@ public class MainController implements Initializable {
         station_from.setConverter(stringConverter);
         station_to.setConverter(stringConverter);
 
+        /**
+         * 初始化
+         */
         trainService = retrofit.create(TrainService.class);
+        try {
+            trainService.init().execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         start_date = LocalDate.now();
         end_date = start_date.plusDays(30);
@@ -301,9 +307,7 @@ public class MainController implements Initializable {
                     @Override
                     public void run() {
                         ObservableList<Station> str2 = FXCollections.observableList(list);
-
                         station_from.setItems(str2);
-
                         station_to.setItems(str2);
                     }
                 });
@@ -367,6 +371,11 @@ public class MainController implements Initializable {
 
         initPassengerTable();
 
+        /**
+         * 提前获取联系人
+         */
+        initPassengerTab();
+
 
         host_listView.setItems(FXCollections.observableList(Constants.HOSTS));
 
@@ -385,26 +394,30 @@ public class MainController implements Initializable {
 
     private void initTrainTable() {
         //查询火车
-        TableColumn<Train, String> col1 = new TableColumn<Train, String>("名称");
-        TableColumn<Train, String> col2 = new TableColumn<Train, String>("出发站");
-        TableColumn<Train, String> col3 = new TableColumn<Train, String>("到达站");
-        TableColumn<Train, String> col4 = new TableColumn<Train, String>("出发时间");
-        TableColumn<Train, String> col5 = new TableColumn<Train, String>("到达时间");
-        TableColumn<Train, String> col6 = new TableColumn<Train, String>("历时");
+        TableColumn<Train, String> station_train_code = new TableColumn<Train, String>("名称");
+        TableColumn<Train, String> from_station_telecode = new TableColumn<Train, String>("出发站");
+        TableColumn<Train, String> to_station_telecode = new TableColumn<Train, String>("到达站");
+        TableColumn<Train, String> start_to_end = new TableColumn<Train, String>("区间");
+        TableColumn<Train, String> start_time = new TableColumn<Train, String>("出发时间");
+        TableColumn<Train, String> arrive_time = new TableColumn<Train, String>("到达时间");
+        TableColumn<Train, String> lishi = new TableColumn<Train, String>("历时");
         TableColumn<Train, String> col7 = new TableColumn<Train, String>("商务/特等");
         TableColumn<Train, String> col8 = new TableColumn<Train, String>("一等");
         TableColumn<Train, String> col9 = new TableColumn<Train, String>("二等");
         TableColumn<Train, String> col10 = new TableColumn<Train, String>("高级软卧");
         TableColumn<Train, String> col11 = new TableColumn<Train, String>("软卧");
         TableColumn<Train, String> col12 = new TableColumn<Train, String>("硬卧");
-        TableColumn<Train, String> col13 = new TableColumn<Train, String>("软卧");
+        TableColumn<Train, String> col13 = new TableColumn<Train, String>("软座");
         TableColumn<Train, String> col14 = new TableColumn<Train, String>("硬座");
         TableColumn<Train, String> col15 = new TableColumn<Train, String>("无座");
-        TableColumn<Train, String> col16 = new TableColumn<Train, String>("状态");
+        TableColumn<Train, String> start_station_telecode = new TableColumn<Train, String>("start_station_telecode");
+        TableColumn<Train, String> end_station_telecode = new TableColumn<Train, String>("end_station_telecode");
+        TableColumn<Train, String> canWebBuy = new TableColumn<Train, String>("WEB");
+        TableColumn<Train, String> buttonTextInfo = new TableColumn<Train, String>("状态");
 
-        col1.setCellValueFactory(new PropertyValueFactory<Train, String>("station_train_code"));
-        col1.getStyleClass().add("text-bold");
-        col2.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
+        station_train_code.setCellValueFactory(new PropertyValueFactory<Train, String>("station_train_code"));
+        station_train_code.getStyleClass().add("text-bold");
+        from_station_telecode.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
                 Train train = param.getValue();
@@ -412,8 +425,8 @@ public class MainController implements Initializable {
                 return new SimpleObjectProperty<String>(name);
             }
         });
-        col2.getStyleClass().add("text-green");
-        col3.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
+        from_station_telecode.getStyleClass().add("text-green");
+        to_station_telecode.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
                 Train train = param.getValue();
@@ -421,49 +434,93 @@ public class MainController implements Initializable {
                 return new SimpleObjectProperty<String>(name);
             }
         });
-        col3.getStyleClass().add("text-red");
-        col4.setCellValueFactory(new PropertyValueFactory<Train, String>("start_time"));
-        col5.setCellValueFactory(new PropertyValueFactory<Train, String>("arrive_time"));
-        col6.setCellValueFactory(new PropertyValueFactory<Train, String>("lishi"));
-        col7.setCellValueFactory(new PropertyValueFactory<Train, String>("tz_num"));
+        to_station_telecode.getStyleClass().add("text-red");
+        start_to_end.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
+                Train train = param.getValue();
+                String name = map_code.get(train.getStart_station_telecode()).getName() + "--" + map_code.get(train.getEnd_station_telecode()).getName();
+                return new SimpleObjectProperty<String>(name);
+            }
+        });
+        start_to_end.getStyleClass().add("text-red");
+
+
+//        "train_no": "D2287",/*车次*/
+//        "start_station_name": "上海虹桥",/*车次始发站*/
+//        "end_station_name": "深圳北",/*车次终点站*/
+//        "from_station_name": "上海虹桥",/*出发站*/
+//        "to_station_name": "温州南",/*到达站*/
+//        "start_time": "06:25",/*出发时间*/
+//        "arrive_time": "10:53",/*到达时间*/
+//        "train_class_name": "动车",/*车次类型*/
+//        "day_difference": "0",/*历时天数*/
+//        "lishi": "04:28",/*总历时时间*/
+//        "gr_num": "--",/*高级软卧：-- 说明无该席位*/
+//        "qt_num": "--",/*其他*/
+//        "rw_num": "--",/*软卧*/
+//        "rz_num": "--",/*软座*/
+//        "tz_num": "--",/*特等座*/
+//        "wz_num": "无",/*无座*/
+//        "yw_num": "--",/*硬卧*/
+//        "yz_num": "--",/*硬座*/
+//        "ze_num": "无",/*二等座*/
+//        "zy_num": "无",/*一等座*/
+//        "swz_num": "--"/*商务座*/
+
+        start_time.setCellValueFactory(new PropertyValueFactory<Train, String>("start_time"));
+        arrive_time.setCellValueFactory(new PropertyValueFactory<Train, String>("arrive_time"));
+        lishi.setCellValueFactory(new PropertyValueFactory<Train, String>("lishi"));
+        col7.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
+                Train train = param.getValue();
+                String name = train.getSwz_num() + "/" + train.getTz_num();
+                return new SimpleObjectProperty<String>(name);
+            }
+        });
         col8.setCellValueFactory(new PropertyValueFactory<Train, String>("zy_num"));
         col9.setCellValueFactory(new PropertyValueFactory<Train, String>("ze_num"));
         col10.setCellValueFactory(new PropertyValueFactory<Train, String>("gr_num"));
         col11.setCellValueFactory(new PropertyValueFactory<Train, String>("rw_num"));
         col12.setCellValueFactory(new PropertyValueFactory<Train, String>("yw_num"));
-        col13.setCellValueFactory(new PropertyValueFactory<Train, String>("rw_num"));
+        col13.setCellValueFactory(new PropertyValueFactory<Train, String>("rz_num"));
         col14.setCellValueFactory(new PropertyValueFactory<Train, String>("yz_num"));
         col15.setCellValueFactory(new PropertyValueFactory<Train, String>("wz_num"));
-        col16.setCellValueFactory(new PropertyValueFactory<Train, String>("buttonTextInfo"));
+        start_station_telecode.setCellValueFactory(new PropertyValueFactory<Train, String>("start_station_telecode"));
+        end_station_telecode.setCellValueFactory(new PropertyValueFactory<Train, String>("end_station_telecode"));
+        canWebBuy.setCellValueFactory(new PropertyValueFactory<Train, String>("canWebBuy"));
 
-        train_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16);
+        buttonTextInfo.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Train, String> param) {
+                Train train = param.getValue();
+                if (org.springframework.util.StringUtils.isEmpty(train.getSecretStr())) {
+                    return new SimpleObjectProperty<String>("不可用");
+                }
+                return new SimpleObjectProperty<String>(train.getButtonTextInfo());
+            }
+        });
+
+        train_table.getColumns().addAll(station_train_code, start_to_end, from_station_telecode, to_station_telecode, start_time, arrive_time, lishi, col7, col8, col9, col10, col11, col12, col13, col14, col15,
+                start_station_telecode, end_station_telecode, canWebBuy, buttonTextInfo);
         train_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
     private void initOrderTable() {
-        TableColumn<OrderDTO, String> col1 = new TableColumn<OrderDTO, String>("订单号");
-        TableColumn<OrderDTO, String> col2 = new TableColumn<OrderDTO, String>("时间");
-        TableColumn<OrderDTO, String> col3 = new TableColumn<OrderDTO, String>("数量");
-        TableColumn<OrderDTO, String> col4 = new TableColumn<OrderDTO, String>("金额");
-        TableColumn<OrderDTO, String> col5 = new TableColumn<OrderDTO, String>("票务");
-//        TableColumn<OrderDTO, String> col6 = new TableColumn<OrderDTO, String>("历时");
-//        TableColumn<OrderDTO, String> col7 = new TableColumn<OrderDTO, String>("商务/特等");
-//        TableColumn<OrderDTO, String> col8 = new TableColumn<OrderDTO, String>("一等");
-//        TableColumn<OrderDTO, String> col9 = new TableColumn<OrderDTO, String>("二等");
-//        TableColumn<OrderDTO, String> col10 = new TableColumn<OrderDTO, String>("高级软卧");
-//        TableColumn<OrderDTO, String> col11 = new TableColumn<OrderDTO, String>("软卧");
-//        TableColumn<OrderDTO, String> col12 = new TableColumn<OrderDTO, String>("硬卧");
-//        TableColumn<OrderDTO, String> col13 = new TableColumn<OrderDTO, String>("软卧");
-//        TableColumn<OrderDTO, String> col14 = new TableColumn<OrderDTO, String>("硬座");
-//        TableColumn<OrderDTO, String> col15 = new TableColumn<OrderDTO, String>("无座");
+        TableColumn<OrderDTO, String> sequence_no = new TableColumn<OrderDTO, String>("订单号");
+        TableColumn<OrderDTO, String> order_date = new TableColumn<OrderDTO, String>("时间");
+        TableColumn<OrderDTO, String> ticket_totalnum = new TableColumn<OrderDTO, String>("数量");
+        TableColumn<OrderDTO, String> ticket_price_all = new TableColumn<OrderDTO, String>("金额");
+        TableColumn<OrderDTO, String> stationTrainDTO = new TableColumn<OrderDTO, String>("票务");
 
-        col1.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("sequence_no"));
-        col1.getStyleClass().add("text-bold");
-        col2.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("order_date"));
-        col2.getStyleClass().add("text-green");
-        col3.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("ticket_totalnum"));
-        col3.getStyleClass().add("text-red");
-        col4.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<OrderDTO, String>, ObservableValue<String>>() {
+        sequence_no.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("sequence_no"));
+        sequence_no.getStyleClass().add("text-bold");
+        order_date.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("order_date"));
+        order_date.getStyleClass().add("text-green");
+        ticket_totalnum.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("ticket_totalnum"));
+        ticket_totalnum.getStyleClass().add("text-red");
+        ticket_price_all.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<OrderDTO, String>, ObservableValue<String>>() {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<OrderDTO, String> param) {
                 OrderDTO order = param.getValue();
@@ -471,64 +528,43 @@ public class MainController implements Initializable {
                 return new SimpleObjectProperty<String>(name);
             }
         });
-        col5.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<OrderDTO, String>, ObservableValue<String>>() {
+        stationTrainDTO.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<OrderDTO, String>, ObservableValue<String>>() {
             @Override
             public ObservableValue<String> call(TableColumn.CellDataFeatures<OrderDTO, String> param) {
                 OrderDTO order = param.getValue();
-                StringBuilder stringBuilder = new StringBuilder();
                 String name = JSON.toJSONString(order.getTickets().get(0).getStationTrainDTO());
                 return new SimpleObjectProperty<String>(name);
             }
         });
-//        col6.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("lishi"));
-//        col7.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("tz_num"));
-//        col8.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("zy_num"));
-//        col9.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("ze_num"));
-//        col10.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("gr_num"));
-//        col11.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("rw_num"));
-//        col12.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("yw_num"));
-//        col13.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("rw_num"));
-//        col14.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("yz_num"));
-//        col15.setCellValueFactory(new PropertyValueFactory<OrderDTO, String>("wz_num"));
 
 
-        order_table.getColumns().addAll(col1, col2, col3, col4, col5);
-//        order_table.getColumns().addAll(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15);
+        order_table.getColumns().addAll(sequence_no, order_date, ticket_totalnum, ticket_price_all, stationTrainDTO);
     }
 
 
     private void initPassengerTable() {
-        TableColumn<Passenger, String> col1 = new TableColumn<Passenger, String>("姓名");
-        TableColumn<Passenger, String> col2 = new TableColumn<Passenger, String>("出生日期");
-        TableColumn<Passenger, String> col3 = new TableColumn<Passenger, String>("身份证");
-        TableColumn<Passenger, String> col4 = new TableColumn<Passenger, String>("身份证编号");
-        TableColumn<Passenger, String> col5 = new TableColumn<Passenger, String>("类型");
+        TableColumn<Passenger, String> passenger_name = new TableColumn<Passenger, String>("姓名");
+        TableColumn<Passenger, String> born_date = new TableColumn<Passenger, String>("添加日期");
+        TableColumn<Passenger, String> passenger_id_type_name = new TableColumn<Passenger, String>("身份证");
+        TableColumn<Passenger, String> passenger_id_no = new TableColumn<Passenger, String>("身份证编号");
+        TableColumn<Passenger, String> passenger_type_name = new TableColumn<Passenger, String>("类型");
+        TableColumn<Passenger, String> first_letter = new TableColumn<Passenger, String>("首字母");
+        TableColumn<Passenger, String> country_code = new TableColumn<Passenger, String>("国籍");
 
-        col1.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_name"));
-        col1.getStyleClass().add("text-bold");
-        col2.setCellValueFactory(new PropertyValueFactory<Passenger, String>("born_date"));
-        col2.getStyleClass().add("text-green");
-        col3.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_id_type_name"));
-        col3.getStyleClass().add("text-red");
-        col4.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Passenger, String>, ObservableValue<String>>() {
-            @Override
-            public ObservableValue<String> call(TableColumn.CellDataFeatures<Passenger, String> param) {
-                Passenger passenger = param.getValue();
-                String name = passenger.getPassenger_id_no();
-                return new SimpleObjectProperty<String>(name);
-            }
-        });
-        col5.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Passenger, String>, ObservableValue<String>>() {
-            @Override
-            public ObservableValue<String> call(TableColumn.CellDataFeatures<Passenger, String> param) {
-                Passenger passenger = param.getValue();
-                String name = passenger.getPassenger_type_name();
-                return new SimpleObjectProperty<String>(name);
-            }
-        });
+        passenger_name.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_name"));
+        passenger_name.getStyleClass().add("text-bold");
+        born_date.setCellValueFactory(new PropertyValueFactory<Passenger, String>("born_date"));
+        born_date.getStyleClass().add("text-green");
+        passenger_id_type_name.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_id_type_name"));
+        passenger_id_type_name.getStyleClass().add("text-red");
+        passenger_id_no.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_id_no"));
+        passenger_id_no.getStyleClass().add("text-red");
+
+        passenger_type_name.setCellValueFactory(new PropertyValueFactory<Passenger, String>("passenger_type_name"));
+        passenger_type_name.getStyleClass().add("text-red");
 
 
-        passenger_table.getColumns().addAll(col1, col2, col3, col4, col5);
+        passenger_table.getColumns().addAll(passenger_name, born_date, passenger_id_type_name, passenger_id_no, passenger_type_name, first_letter, country_code);
     }
 
     private void initOrderTab() {
@@ -607,7 +643,6 @@ public class MainController implements Initializable {
             AlertUtils.showErrorAlert("请选择日期");
             return;
         }
-        trainService.init().execute();
 
 
         Call<FetchTrain> call = trainService.queryX(date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
@@ -914,6 +949,9 @@ public class MainController implements Initializable {
             }
         }
 
+        /**
+         * 验证登录
+         */
         CheckUser checkUser_result = trainService.checkUser("").execute().body();
         if (!checkUser_result.getData().isFlag()) {
             AlertUtils.showErrorAlert("未登录");
@@ -921,6 +959,9 @@ public class MainController implements Initializable {
         }
 
 
+        /**
+         * 预提交订单
+         */
         Response<BaseDto> submitOrderRequest_result = trainService.submitOrderRequest(secretStr,
                 date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
@@ -935,16 +976,18 @@ public class MainController implements Initializable {
             return;
         }
 
+        /**
+         * 模拟跳转页面InitDc
+         */
         Response<String> initDc_result = trainService.initDc().execute();
 
+        /**
+         * 获取提交信息
+         */
         int position = initDc_result.body().indexOf("globalRepeatSubmitToken");
         int position_start = initDc_result.body().indexOf("'", position) + 1;
         int position_end = initDc_result.body().indexOf("'", position_start);
-
         String token = String.valueOf(initDc_result.body().subSequence(position_start, position_end));
-
-        initPassengerTab();
-
         String passengerTicketStr = joinPassanger(normal_passengers.get(0));
         String oldPassengerStr = joinoldPassanger(normal_passengers.get(0)) + "_";
 

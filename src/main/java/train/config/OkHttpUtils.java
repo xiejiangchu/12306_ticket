@@ -1,6 +1,9 @@
 package train.config;
 
-import okhttp3.*;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import rx.Observable;
@@ -48,15 +51,15 @@ public class OkHttpUtils {
             e.printStackTrace();
         }
 
-//        /**
-//         * log  拦截器
-//         */
-//        // Log信息拦截器
-//        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-//        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);//这里可以选择拦截级别
-//
-//        //设置 Debug Log 模式
-//        okHttpBuilder.addInterceptor(loggingInterceptor);
+        /**
+         * log  拦截器
+         */
+        // Log信息拦截器
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);//这里可以选择拦截级别
+
+        //设置 Debug Log 模式
+        okHttpBuilder.addInterceptor(loggingInterceptor);
 
 
         /**

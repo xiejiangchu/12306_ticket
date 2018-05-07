@@ -114,8 +114,6 @@ public class LoginController implements Initializable {
     }
 
     public void onLogin(Event e) throws IOException {
-        btn_login.setText("登录中");
-        btn_login.setDisable(true);
 
         String username_str = username.getText();
         String password_str = password.getText();
@@ -136,32 +134,38 @@ public class LoginController implements Initializable {
                 builder.append(",");
             }
         }
-        Call<String> call = trainService.captureCheck(builder.toString(), "E", "sjrand");
-        Response<String> response = call.execute();
-        if (response.code() == 200) {
-            if (StringUtils.isEmpty(response.body())) {
-                capture_check = true;
-                logger.info("验证码验证成功:,无消息返回");
-            } else {
-                CaptureResult result = JSON.parseObject(response.body(), CaptureResult.class);
-                if (result.getResult_code() != 4) {
-                    logger.info("验证码验证失败:" + response.body());
-                    capture_check = false;
-                } else {
-                    logger.info("验证码验证成功:" + response.body());
-                    capture_check = true;
-                }
-            }
-        } else {
-            logger.info(response.code() + response.message());
-        }
+
+        btn_login.setText("登录中");
+        btn_login.setDisable(true);
+
 
         if (!capture_check) {
-            AlertUtils.showErrorAlert("图像验证码未通过");
-            btn_login.setDisable(false);
-            return;
-        }
+            Call<String> call = trainService.captureCheck(builder.toString(), "E", "sjrand");
+            Response<String> response = call.execute();
+            if (response.code() == 200) {
+                if (StringUtils.isEmpty(response.body())) {
+                    capture_check = true;
+                    logger.info("验证码验证成功:,无消息返回");
+                } else {
+                    CaptureResult result = JSON.parseObject(response.body(), CaptureResult.class);
+                    if (result.getResult_code() != 4) {
+                        logger.info("验证码验证失败:{}", response.body());
+                        capture_check = false;
+                    } else {
+                        logger.info("验证码验证成功:{}", response.body());
+                        capture_check = true;
+                    }
+                }
+            } else {
+                logger.info(response.code() + response.message());
+            }
 
+            if (!capture_check) {
+                AlertUtils.showErrorAlert("图像验证码未通过");
+                btn_login.setDisable(false);
+                return;
+            }
+        }
 
         logger.info("========================   登陆    ========================");
         trainService.login(username_str, password_str, "otn").execute().body();
@@ -175,6 +179,7 @@ public class LoginController implements Initializable {
         UamAuthClientBean tk = trainService.uamauthclient(newapptk).execute().body();
         if (StringUtils.isEmpty(tk)) {
             logger.info("登录失败");
+            fetchImage();
         } else {
             logger.info("登陆成功,{}" + JSON.toJSONString(tk));
             Stage stage = (Stage) canvas.getScene().getWindow();
@@ -192,13 +197,10 @@ public class LoginController implements Initializable {
     private void fetchImage() {
         points.clear();
         try {
-            trainService.init().execute();
             trainService.uamtk("otn").execute();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
         Call<ResponseBody> call = trainService.captchaImage("E", "login", "sjrand", random.nextDouble());
         call.enqueue(new Callback<ResponseBody>() {
             @Override
