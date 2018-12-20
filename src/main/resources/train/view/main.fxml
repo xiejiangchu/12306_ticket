@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
@@ -19,7 +18,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.text.Font?>
 
 <TabPane fx:id="train_tab" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="train.controller.MainController">
     <tabs>
@@ -31,7 +29,7 @@
                             <top>
                                 <BorderPane prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                                     <right>
-                                        <GridPane BorderPane.alignment="CENTER">
+                                        <GridPane prefHeight="100.0" prefWidth="151.0" BorderPane.alignment="CENTER">
                                             <columnConstraints>
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="5.0" prefWidth="50.0" />
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="5.0" prefWidth="50.0" />
@@ -42,19 +40,17 @@
                                                 <RowConstraints minHeight="10.0" prefHeight="15.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Button mnemonicParsing="false" onMouseClicked="#onFetchTrain" prefHeight="36.0" prefWidth="96.0" text="获取车票" textAlignment="CENTER" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER" GridPane.vgrow="NEVER" />
-                                                <Button mnemonicParsing="false" onMouseClicked="#onLoginView" prefHeight="36.0" prefWidth="96.0" text="登陆" textAlignment="CENTER" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" GridPane.vgrow="NEVER" />
-                                                <Button mnemonicParsing="false" onMouseClicked="#onSubmitOrderRequest" prefHeight="36.0" prefWidth="96.0" text="订阅" textAlignment="CENTER" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" GridPane.vgrow="NEVER" />
+                                                <Button mnemonicParsing="false" onMouseClicked="#onFetchTrain" prefHeight="36.0" prefWidth="96.0" text="获取车票" textAlignment="CENTER" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER" GridPane.vgrow="NEVER" />
+                                                <Button mnemonicParsing="false" onMouseClicked="#onLoginView" prefHeight="36.0" prefWidth="96.0" text="登陆" textAlignment="CENTER" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" GridPane.vgrow="NEVER" />
+                                                <Button mnemonicParsing="false" onMouseClicked="#onSubmitOrderRequest" prefHeight="36.0" prefWidth="96.0" text="订阅" textAlignment="CENTER" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" GridPane.vgrow="NEVER" />
                                             </children>
                                         </GridPane>
                                     </right>
                                     <center>
-                                        <GridPane BorderPane.alignment="CENTER">
+                                        <GridPane minWidth="-Infinity" prefHeight="100.0" prefWidth="738.0" BorderPane.alignment="CENTER">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="95.0" minWidth="10.0" prefWidth="93.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="147.0" minWidth="10.0" prefWidth="107.0" />
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -71,99 +67,30 @@
                                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <ComboBox fx:id="station_from" prefHeight="27.0" prefWidth="166.0" promptText="出发地" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="0" />
-                                                <ComboBox fx:id="station_to" prefWidth="150.0" promptText="目的地" GridPane.columnIndex="2" GridPane.columnSpan="2" />
-                                                <DatePicker fx:id="date_from" promptText="出发时间" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-                                                <CheckBox fx:id="ck_gc" contentDisplay="TOP" mnemonicParsing="false" mouseTransparent="true" selected="true" text="GC-高铁" textOverrun="CLIP" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                       <opaqueInsets>
-                                          <Insets />
-                                       </opaqueInsets>
+                                                <ComboBox fx:id="station_from" prefHeight="27.0" prefWidth="166.0" promptText="出发地" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                                <ComboBox fx:id="station_to" prefWidth="150.0" promptText="目的地" GridPane.columnIndex="1" />
+                                                <DatePicker fx:id="date_from" promptText="出发时间" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="ck_gc" contentDisplay="TOP" mnemonicParsing="false" mouseTransparent="true" selected="true" text="GC-高铁" textOverrun="CLIP" GridPane.columnIndex="0" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                                    <opaqueInsets>
+                                                        <Insets />
+                                                    </opaqueInsets>
                                                 </CheckBox>
-                                                <CheckBox fx:id="ck_d" mnemonicParsing="false" selected="true" text="D-动车" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox fx:id="ck_z" mnemonicParsing="false" selected="true" text="Z-直达" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox fx:id="ck_t" mnemonicParsing="false" selected="true" text="T-特快" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox fx:id="ck_k" mnemonicParsing="false" selected="true" text="K-快速" GridPane.columnIndex="8" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox fx:id="ck_q" mnemonicParsing="false" selected="true" text="其他" GridPane.columnIndex="10" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="商务" GridPane.columnIndex="0" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="特等" GridPane.columnIndex="1" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="一等" GridPane.columnIndex="2" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="二等" GridPane.columnIndex="3" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="高软" GridPane.columnIndex="4" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="软卧" GridPane.columnIndex="5" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="硬卧" GridPane.columnIndex="6" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="软座" GridPane.columnIndex="7" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="硬座" GridPane.columnIndex="8" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="无座" GridPane.columnIndex="9" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <CheckBox mnemonicParsing="false" selected="true" text="其他" GridPane.columnIndex="10" GridPane.columnSpan="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-                                                    <font>
-                                                        <Font size="4.0" />
-                                                    </font>
-                                                </CheckBox>
-                                                <ComboBox fx:id="time_from" prefHeight="27.0" prefWidth="117.0" promptText="出发时间" GridPane.columnIndex="6" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-                                                <ComboBox fx:id="time_to" prefHeight="27.0" prefWidth="116.0" promptText="终止时间" GridPane.columnIndex="8" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="ck_d" mnemonicParsing="false" selected="true" text="D-动车" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="ck_z" mnemonicParsing="false" selected="true" text="Z-直达" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="ck_t" mnemonicParsing="false" selected="true" text="T-特快" GridPane.columnIndex="3" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="ck_k" mnemonicParsing="false" selected="true" text="K-快速" GridPane.columnIndex="4" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="ck_q" mnemonicParsing="false" selected="true" text="其他" GridPane.columnIndex="5" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="商务" GridPane.columnIndex="0" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="特等" GridPane.columnIndex="1" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="一等" GridPane.columnIndex="2" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="二等" GridPane.columnIndex="3" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="高软" GridPane.columnIndex="4" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="软卧" GridPane.columnIndex="5" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="硬卧" GridPane.columnIndex="6" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="软座" GridPane.columnIndex="7" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox mnemonicParsing="false" selected="true" text="硬座" GridPane.columnIndex="8" GridPane.columnSpan="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <ComboBox fx:id="time_from" prefHeight="27.0" prefWidth="117.0" promptText="出发时间" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                                                <ComboBox fx:id="time_to" prefHeight="27.0" prefWidth="116.0" promptText="终止时间" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
                                                 <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnSpan="6" GridPane.rowIndex="3">
                                                     <children>
                                                         <Label fx:id="label_count" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="第1次查询" />
@@ -179,7 +106,9 @@
                             </top>
                             <center>
                                 <TableView fx:id="train_table" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-
+                                    <columnResizePolicy>
+                                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                    </columnResizePolicy>
                                 </TableView>
                             </center>
                         </BorderPane>
@@ -239,7 +168,9 @@
                             </top>
                             <center>
                                 <TableView fx:id="passenger_table" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-
+                                    <columnResizePolicy>
+                                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                    </columnResizePolicy>
                                 </TableView>
                             </center>
                         </BorderPane>
@@ -279,8 +210,4 @@
             </content>
         </Tab>
     </tabs>
-
-    <stylesheets>
-        <URL value="@../../style.css" />
-    </stylesheets>
 </TabPane>

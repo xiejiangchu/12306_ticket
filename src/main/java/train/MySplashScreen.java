@@ -1,5 +1,6 @@
 package train;
 
+import com.aquafx_project.AquaFx;
 import de.felixroske.jfxsupport.SplashScreen;
 import javafx.scene.Parent;
 import javafx.scene.control.ProgressBar;
@@ -10,6 +11,11 @@ import javafx.scene.layout.VBox;
  * Created by xie on 17/9/16.
  */
 public class MySplashScreen extends SplashScreen {
+
+    public MySplashScreen() {
+        super();
+        AquaFx.style();
+    }
 
     @Override
     public Parent getParent() {

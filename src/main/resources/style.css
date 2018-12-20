@@ -1,9 +1,9 @@
 * {
-	-fx-font-size: 10px;
+    -fx-font-size: 12px;
 }
 
 .button {
-	-fx-font-size: 14px;
+    -fx-font-size: 12px;
 }
 
 .tool-bar .button {
@@ -17,12 +17,12 @@
 }
 
 .btn-primary {
-	-fx-background-color: #378bfa;
-	-fx-text-fill: white;
+    -fx-background-color: #378bfa;
+    -fx-text-fill: white;
 }
 
 .btn-primary:hover {
-	-fx-background-color: #579efa;
+    -fx-background-color: #579efa;
 }
 
 .btn-default {
@@ -49,30 +49,28 @@
 }
 
 .consoleTextArea {
-	-fx-stroke: white;
-	-fx-fill: black;
-	-fx-background-color: black;
+    -fx-stroke: white;
+    -fx-fill: black;
+    -fx-background-color: black;
 }
 
 .consoleTextArea:focused {
 }
 
-.text-green{
+.text-green {
     -fx-font-weight: bold;
     -fx-text-fill: #4cae4c;
 }
 
-.text-red{
+.text-red {
     -fx-font-weight: bold;
     -fx-text-fill: #ff0000;
 }
 
-.text-bold{
+.text-bold {
     -fx-text-fill: #000000;
     -fx-font-weight: bold;
 }
-
-
 
 /** fruitcombo.css
     place in same directory as FruitComboApplication.java
@@ -100,7 +98,7 @@
     -fx-alignment: CENTER;
 }
 
-.table-view .column-header{
+.table-view .column-header {
     -fx-background-color: #4cae4c;
 }
 
@@ -109,10 +107,9 @@
     -fx-font-weight: bold;
 }
 
-.check-box{
+.check-box {
     -fx-font-size: 20;
 }
-
 
 #order_table .table-view {
     -fx-alignment: CENTER;

@@ -1,6 +1,5 @@
 package train.controller;
 
-import com.alibaba.dcm.DnsCacheManipulator;
 import com.alibaba.fastjson.JSON;
 import de.felixroske.jfxsupport.FXMLController;
 import javafx.application.Platform;
@@ -21,6 +20,8 @@ import javafx.stage.Modality;
 import javafx.util.StringConverter;
 import okhttp3.ResponseBody;
 import org.joda.time.DateTime;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ import train.service.PingService;
 import train.service.TrainService;
 import train.utils.AlertUtils;
 import train.utils.Constants;
+import train.utils.GUIUtils;
 import train.utils.StringUtils;
 import train.view.LoginView;
 
@@ -414,6 +416,7 @@ public class MainController implements Initializable {
         TableColumn<Train, String> end_station_telecode = new TableColumn<Train, String>("end_station_telecode");
         TableColumn<Train, String> canWebBuy = new TableColumn<Train, String>("WEB");
         TableColumn<Train, String> buttonTextInfo = new TableColumn<Train, String>("状态");
+        TableColumn<Train, String> seat_types = new TableColumn<Train, String>("座位类型");
 
         station_train_code.setCellValueFactory(new PropertyValueFactory<Train, String>("station_train_code"));
         station_train_code.getStyleClass().add("text-bold");
@@ -490,6 +493,7 @@ public class MainController implements Initializable {
         start_station_telecode.setCellValueFactory(new PropertyValueFactory<Train, String>("start_station_telecode"));
         end_station_telecode.setCellValueFactory(new PropertyValueFactory<Train, String>("end_station_telecode"));
         canWebBuy.setCellValueFactory(new PropertyValueFactory<Train, String>("canWebBuy"));
+        seat_types.setCellValueFactory(new PropertyValueFactory<Train, String>("seat_types"));
 
         buttonTextInfo.setCellValueFactory(new javafx.util.Callback<TableColumn.CellDataFeatures<Train, String>, ObservableValue<String>>() {
             @Override
@@ -503,7 +507,7 @@ public class MainController implements Initializable {
         });
 
         train_table.getColumns().addAll(station_train_code, start_to_end, from_station_telecode, to_station_telecode, start_time, arrive_time, lishi, col7, col8, col9, col10, col11, col12, col13, col14, col15,
-                start_station_telecode, end_station_telecode, canWebBuy, buttonTextInfo);
+                start_station_telecode, end_station_telecode, canWebBuy, seat_types, buttonTextInfo);
         train_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
@@ -721,6 +725,7 @@ public class MainController implements Initializable {
                     @Override
                     public void run() {
                         train_table.setItems(FXCollections.observableArrayList(filterTrain(trains)));
+                        GUIUtils.autoFitTable(train_table);
                         count++;
                         setLabelCount();
                     }
@@ -807,29 +812,14 @@ public class MainController implements Initializable {
     }
 
 
-    //    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 3000)
     public void testCron() {
-        rx.Observable.from(Constants.HOSTS).subscribe(new Action1<String>() {
-            @Override
-            public void call(String s) {
-                try {
-                    logger.info("1:{}", InetAddress.getByName(Constants.DOMAIN).getHostAddress());
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                }
-                DnsCacheManipulator.setDnsCache(Constants.DOMAIN, s);
-
-                retrofit = new RetrofitConfig().retrofitInit();
-                trainService = retrofit.create(TrainService.class);
-                try {
-                    logger.info("1:{}----{}------{}", s, InetAddress.getByName(Constants.DOMAIN).getHostAddress(), trainService.test().execute().headers().get("ct"));
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        Retrofit retrofit = new RetrofitConfig().retrofitInit();
+        try {
+            logger.info("1----{}", InetAddress.getByName(Constants.DOMAIN).getHostAddress());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -980,6 +970,8 @@ public class MainController implements Initializable {
          * 模拟跳转页面InitDc
          */
         Response<String> initDc_result = trainService.initDc().execute();
+
+        Document document = Jsoup.parse(initDc_result.body(), "UTF-8");
 
         /**
          * 获取提交信息
