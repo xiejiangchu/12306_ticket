@@ -25,16 +25,13 @@ import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import train.Booter;
 import train.bean.*;
+import train.config.CdnConfig;
 import train.config.RetrofitConfig;
 import train.config.TextAreaAppender;
 import train.enums.*;
@@ -50,9 +47,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -137,13 +132,7 @@ public class MainController implements Initializable {
 
     private TrainService trainService;
 
-    private TreeMap<String, PingHost> treeMap = new TreeMap<>();
-
-
     List<Passenger> normal_passengers;
-    //ping
-    List<PingHost> pingHostList = new ArrayList<>();
-    ObservableList<PingHost> pingHostObservableList = FXCollections.observableList(pingHostList);
 
 
     private Map<String, Station> map_code = new TreeMap<>();
@@ -202,7 +191,7 @@ public class MainController implements Initializable {
     @FXML
     public void initialize(URL location, ResourceBundle resources) {
         //ping
-        host_table.setItems(pingHostObservableList);
+        host_table.setItems(pingService.getHost());
 
 
         setLabelCount();
@@ -213,8 +202,6 @@ public class MainController implements Initializable {
             public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
                 String tab_name = newValue.getText();
                 if (tab_name.equals("服务器测速")) {
-
-                } else if (tab_name.equals("服务器测速")) {
 
                 } else if (tab_name.equals("订单列表")) {
                     initOrderTab();
@@ -309,8 +296,10 @@ public class MainController implements Initializable {
                     @Override
                     public void run() {
                         ObservableList<Station> str2 = FXCollections.observableList(list);
-                        station_from.setItems(str2);
-                        station_to.setItems(str2);
+                        if (null != str2) {
+                            station_from.setItems(str2);
+                            station_to.setItems(str2);
+                        }
                     }
                 });
             }
@@ -379,7 +368,7 @@ public class MainController implements Initializable {
         initPassengerTab();
 
 
-        host_listView.setItems(FXCollections.observableList(Constants.HOSTS));
+        host_listView.setItems(FXCollections.observableList(CdnConfig.getHosts()));
 
 
         logger.info("init");
@@ -648,8 +637,8 @@ public class MainController implements Initializable {
             return;
         }
 
-
-        Call<FetchTrain> call = trainService.queryX(date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+        Retrofit retrofit = RetrofitConfig.getRetrofit(String.format("http://%s/", pingService.getCurrentHost()));
+        Call<FetchTrain> call = retrofit.create(TrainService.class).queryX(date_selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 station_from_selected.getCode(), station_to_selected.getCode(), PurposeCodes.成人.getVal());
 
         call.enqueue(new Callback<FetchTrain>() {
@@ -673,7 +662,8 @@ public class MainController implements Initializable {
                     logger.info("获取到车次,共{}个", list.size());
                     for (int i = 0; i < list.size(); i++) {
                         String[] fields = list.get(i).split("\\|");
-                        if (fields.length != 37) {
+                        if (fields.length < 37) {
+                            logger.info("获取车次信息长度不匹配 {} 不大于 37 ", fields.length);
                             continue;
                         }
                         Train train = new Train();
@@ -713,8 +703,11 @@ public class MainController implements Initializable {
                         train.srrb_num = !org.springframework.util.StringUtils.isEmpty(fields[33]) ? fields[33] : "--";
                         train.yp_ex = fields[34];
                         train.seat_types = fields[35];
-                        train.secretHBStr = fields[36];
                         train.exchange_train_flag = fields[36];
+                        train.houbu_train_flag = fields[37];
+                        if (fields.length > 37) {
+                            train.houbu_seat_limit = fields[37];
+                        }
                         if (filterTrain(train)) {
                             trains.add(train);
                         }
@@ -767,59 +760,7 @@ public class MainController implements Initializable {
 
     @FXML
     public void onPingHost(Event e) {
-        pingHostObservableList.clear();
-        rx.Observable.from(Constants.HOSTS)
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.immediate())
-                .subscribe(new Action1<String>() {
-                    @Override
-                    public void call(String s) {
-                        int result = pingService.ping(s);
-                        PingHost pingHost = new PingHost();
-                        pingHost.setHost(s);
-                        pingHost.setPing(result);
-                        pingHostObservableList.add(pingHost);
-                        treeMap.put(s, pingHost);
-                    }
-                });
-    }
-
-    @Scheduled(fixedDelay = 3000)
-    private void testPing() {
-        rx.Observable.from(Constants.HOSTS)
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.immediate())
-                .subscribe(new Action1<String>() {
-                    @Override
-                    public void call(String s) {
-                        int result = pingService.ping(s);
-                        PingHost pingHost = new PingHost();
-                        pingHost.setHost(s);
-                        pingHost.setPing(result);
-                        treeMap.put(s, pingHost);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-
-                    }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-
-                    }
-                });
-    }
-
-
-    @Scheduled(fixedRate = 3000)
-    public void testCron() {
-        Retrofit retrofit = new RetrofitConfig().retrofitInit();
-        try {
-            logger.info("1----{}", InetAddress.getByName(Constants.DOMAIN).getHostAddress());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
+        pingService.initTreeMap();
     }
 
 
@@ -1022,5 +963,13 @@ public class MainController implements Initializable {
     @FXML
     public void exitApplication(ActionEvent event) {
         Platform.exit();
+    }
+
+    public void onSwitchStation(ActionEvent actionEvent) {
+        Station temp = station_from_selected;
+        station_from_selected = station_to_selected;
+        station_to_selected = temp;
+        station_from.setValue(station_from_selected);
+        station_to.setValue(station_to_selected);
     }
 }

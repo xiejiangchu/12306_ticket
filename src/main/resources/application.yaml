@@ -1,7 +1,18 @@
 spring:
     jmx: 
         enabled: false
+    profiles:
+        active: integration
+    application:
+        name: 12306-train
 javafx:
     stage:
         resizable: true
     title: 12306抢票
+
+
+threadpool:
+    core-pool-size: 4
+    max-pool-size: 8
+    queue-capacity: 1000
+    keep-alive-seconds: 300

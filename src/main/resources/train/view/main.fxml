@@ -19,7 +19,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<TabPane fx:id="train_tab" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="train.controller.MainController">
+<TabPane fx:id="train_tab" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="1400.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="train.controller.MainController">
     <tabs>
         <Tab text="票务查询">
             <content>
@@ -68,7 +68,9 @@
                                             </rowConstraints>
                                             <children>
                                                 <ComboBox fx:id="station_from" prefHeight="27.0" prefWidth="166.0" promptText="出发地" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                                                <ComboBox fx:id="station_to" prefWidth="150.0" promptText="目的地" GridPane.columnIndex="1" />
+                                                <ComboBox fx:id="station_to" prefHeight="22.0" prefWidth="83.0" promptText="目的地" GridPane.columnIndex="1" />
+                                                <Button fx:id="switch_station" mnemonicParsing="false" onAction="#onSwitchStation" text="交换" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
+                                                </Button>
                                                 <DatePicker fx:id="date_from" promptText="出发时间" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
                                                 <CheckBox fx:id="ck_gc" contentDisplay="TOP" mnemonicParsing="false" mouseTransparent="true" selected="true" text="GC-高铁" textOverrun="CLIP" GridPane.columnIndex="0" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                                     <opaqueInsets>

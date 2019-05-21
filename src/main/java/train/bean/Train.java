@@ -6,7 +6,6 @@ package train.bean;
 public class Train {
 
     public String secretStr;
-    public String secretHBStr;
     public String buttonTextInfo;
     public String train_no;
     public String station_train_code;
@@ -43,6 +42,8 @@ public class Train {
     public String yp_ex;
     public String seat_types;
     public String exchange_train_flag;
+    public String houbu_train_flag;
+    public String houbu_seat_limit;
 
     public String getSecretStr() {
         return secretStr;
@@ -332,19 +333,27 @@ public class Train {
         this.seat_types = seat_types;
     }
 
-    public String getSecretHBStr() {
-        return secretHBStr;
-    }
-
-    public void setSecretHBStr(String secretHBStr) {
-        this.secretHBStr = secretHBStr;
-    }
-
     public String getExchange_train_flag() {
         return exchange_train_flag;
     }
 
     public void setExchange_train_flag(String exchange_train_flag) {
         this.exchange_train_flag = exchange_train_flag;
+    }
+
+    public String getHoubu_train_flag() {
+        return houbu_train_flag;
+    }
+
+    public void setHoubu_train_flag(String houbu_train_flag) {
+        this.houbu_train_flag = houbu_train_flag;
+    }
+
+    public String getHoubu_seat_limit() {
+        return houbu_seat_limit;
+    }
+
+    public void setHoubu_seat_limit(String houbu_seat_limit) {
+        this.houbu_seat_limit = houbu_seat_limit;
     }
 }

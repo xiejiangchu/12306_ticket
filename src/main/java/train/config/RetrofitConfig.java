@@ -2,6 +2,7 @@ package train.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.istack.internal.NotNull;
 import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +31,16 @@ public class RetrofitConfig {
         return new Retrofit.Builder()
                 .client(OkHttpUtils.builder().build())
                 .baseUrl(Constants.BASE_URL)
+                .addConverterFactory(StringConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(initGson()))
+                .build();
+    }
+
+    public static Retrofit getRetrofit(@NotNull String base_url) {
+
+        return new Retrofit.Builder()
+                .client(OkHttpUtils.builder().build())
+                .baseUrl(base_url)
                 .addConverterFactory(StringConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(initGson()))
                 .build();

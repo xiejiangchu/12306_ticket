@@ -6,10 +6,31 @@ import retrofit2.http.*;
 import train.bean.*;
 import train.utils.Constants;
 
+import java.util.Map;
+
 /**
  * Created by xie on 17/9/15.
  */
 public interface TrainService {
+
+    /**
+     * 360验证码识别
+     */
+    @Headers({
+            "Host:check.huochepiao.360.cn",
+            "Upgrade-Insecure-Requests:1",
+            "User-Agent:Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36 QIHU 360EE",
+            "Content-Type: application/json"})
+    @POST("http://47.98.124.142:9082/api/v2/getCheck")
+    Call<String> getCheck360(@Body Check360Dto check360Dto);
+
+    @Headers({
+            "Host:check.huochepiao.360.cn",
+            "Upgrade-Insecure-Requests:1",
+            "User-Agent:Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36 QIHU 360EE",
+            "Content-Type: application/json"})
+    @POST("http://check.huochepiao.360.cn/img_vcode")
+    Call<String> getPositionBy360(@Body Position360Dto position360Dto);
 
     /**
      * 刷票初始化
@@ -26,6 +47,35 @@ public interface TrainService {
      */
     @GET("/otn/leftTicket/init")
     Call<String> init();
+
+    /**
+     * 登录初始化
+     *
+     * @return
+     */
+    @GET("/otn/login/conf")
+    Call<LoginConfDto> loginConf();
+
+    /**
+     * 登录初始化
+     *
+     * @return
+     */
+    @GET("/otn/login/init")
+    Call<String> loginInit();
+
+    /**
+     * 检查登录状态 登录流程
+     *
+     * @return
+     */
+    @Headers({
+            "Referer:https://kyfw.12306.cn/otn/index/init",
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36"
+    })
+    @FormUrlEncoded
+    @POST("/passport/web/auth/uamtk-static")
+    Call<UamtkStaticDto> uamtkStatic(@Field(value = "appid", encoded = true) String appid);
 
 
     /**
@@ -62,13 +112,12 @@ public interface TrainService {
      */
     @Headers({
             "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36",
-            "Access-Control-Allow-Credentials:true"
+            "Referer:https://kyfw.12306.cn/otn/resources/login.html"
     })
-    @FormUrlEncoded
-    @POST("/passport/captcha/captcha-check")
-    Call<String> captureCheck(@Field("answer") String answer,
-                              @Field("login_site") String login_site,
-                              @Field("rand") String rand);
+    @GET("/passport/captcha/captcha-check")
+    Call<String> captureCheck(@Query("answer") String answer,
+                              @Query("login_site") String login_site,
+                              @Query("rand") String rand);
 
     /**
      * 火车基本信息
@@ -92,6 +141,25 @@ public interface TrainService {
                                     @Query("module") String module,
                                     @Query("rand") String rand,
                                     @Query("end") double end);
+
+    /**
+     * base64生成验证码
+     *
+     * @param login_site
+     * @param module
+     * @param rand
+     * @param timeStamp
+     * @return
+     */
+    @Headers({
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36",
+            "Referer:https://kyfw.12306.cn/otn/leftTicket/init"
+    })
+    @GET("/passport/captcha/captcha-image64")
+    Call<Image64Dto> captchaImage64(@Query("login_site") String login_site,
+                                    @Query("module") String module,
+                                    @Query("rand") String rand,
+                                    @Query("_") long timeStamp);
 
     /**
      * 获取站信息
@@ -174,11 +242,16 @@ public interface TrainService {
      * @param appid    appId-otn
      * @return
      */
+    @Headers({
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36",
+            "Referer:https://kyfw.12306.cn/otn/resources/login.html"
+    })
     @FormUrlEncoded
     @POST("/passport/web/login")
     Call<String> login(@Field(value = "username", encoded = true) String username,
                        @Field(value = "password", encoded = true) String password,
-                       @Field(value = "appid", encoded = true) String appid);
+                       @Field(value = "appid", encoded = true) String appid,
+                       @Field(value = "answer", encoded = true) String answer);
 
     /**
      * uamtk
@@ -186,8 +259,13 @@ public interface TrainService {
      * @param appid
      * @return appId-otn
      */
+    @Headers({
+            "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36",
+            "Referer:https://kyfw.12306.cn/otn/resources/login.html"
+    })
+    @FormUrlEncoded
     @POST("/passport/web/auth/uamtk")
-    Call<UamtkDto> uamtk(@Query("appid") String appid);
+    Call<UamtkDto> uamtk(@Field(value = "appid", encoded = true) String appid);
 
     /**
      * uamauthclient
@@ -195,8 +273,9 @@ public interface TrainService {
      * @param tk
      * @return
      */
+    @FormUrlEncoded
     @POST("/otn/uamauthclient")
-    Call<UamAuthClientBean> uamauthclient(@Query("tk") String tk);
+    Call<UamAuthClientBean> uamauthclient(@Field(value = "tk", encoded = true) String tk);
 
 
     /**
@@ -373,4 +452,14 @@ public interface TrainService {
     @POST("/otn/confirmPassenger/queryOrderWaitTime")
     Call<String> queryOrderWaitTime(@Query(value = "random", encoded = true) String random,
                                     @Field(value = "tourFlag", encoded = true) String tourFlag);
+
+
+    /**
+     * 订票时检测用户是否登录
+     *
+     * @param req
+     * @return
+     */
+    @POST("/otn/login/checkUser")
+    public Call<String> checkUser(@QueryMap Map<String, String> req);
 }

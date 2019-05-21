@@ -1,10 +1,8 @@
 package train;
 
-import com.aquafx_project.AquaFx;
 import de.felixroske.jfxsupport.AbstractJavaFxApplicationSupport;
 import javafx.application.Platform;
 import org.springframework.beans.BeansException;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -17,7 +15,6 @@ import train.view.MainView;
  */
 @SpringBootApplication
 @EnableScheduling
-@EnableAutoConfiguration
 public class Booter extends AbstractJavaFxApplicationSupport implements ApplicationContextAware {
 
 

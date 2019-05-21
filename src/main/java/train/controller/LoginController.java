@@ -22,10 +22,9 @@ import org.springframework.util.StringUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import train.bean.CaptureResult;
-import train.bean.MyPoint2D;
-import train.bean.UamAuthClientBean;
+import train.bean.*;
+import train.config.RetrofitConfig;
+import train.service.PingService;
 import train.service.TrainService;
 import train.utils.AlertUtils;
 
@@ -48,7 +47,7 @@ public class LoginController implements Initializable {
     private final static Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @Autowired
-    private Retrofit retrofit;
+    private PingService pingService;
 
     @FXML
     private Canvas canvas;
@@ -74,11 +73,10 @@ public class LoginController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        username.setText("xie_jc");
-        password.setText("q19870819a");
-        trainService = retrofit.create(TrainService.class);
+        username.setText("xxxxxx");
+        password.setText("xxxxxx");
+        trainService = RetrofitConfig.getRetrofit(String.format("http://%s/", pingService.getCurrentHost())).create(TrainService.class);
         fetchImage();
-
     }
 
     @FXML
@@ -138,8 +136,21 @@ public class LoginController implements Initializable {
         btn_login.setText("登录中");
         btn_login.setDisable(true);
 
+        LoginConfDto loginConfDto = trainService.loginConf().execute().body();
+        if (null == loginConfDto) {
+            logger.info("登录配置接口出错");
+            return;
+        }
+//        boolean is_login_passCode = loginConfDto.getData().getIs_login_passCode().equals("Y");
+//        if (is_login_passCode) {
+//            Image64Dto image64Dto = trainService.captchaImage64("E", "login", "sjrand", System.currentTimeMillis()).execute().body();
+//            Check360Dto check360Dto = new Check360Dto();
+//            check360Dto.setBase64(image64Dto.getImage());
+//            String result = trainService.getCheck360(check360Dto).execute().body();
+//        }
 
-        if (!capture_check) {
+
+        if (!capture_check && loginConfDto.getData().getIs_login_passCode().equals("Y")) {
             Call<String> call = trainService.captureCheck(builder.toString(), "E", "sjrand");
             Response<String> response = call.execute();
             if (response.code() == 200) {
@@ -167,9 +178,28 @@ public class LoginController implements Initializable {
             }
         }
 
-        logger.info("========================   登陆    ========================");
-        trainService.login(username_str, password_str, "otn").execute().body();
+        logger.info("========================   uamtkStatic    ========================");
+        UamtkStaticDto uamtkStatic = trainService.uamtkStatic("otn").execute().body();
+        logger.info("帐号状态监测完成！");
+        if (null != uamtkStatic) {
+            if (uamtkStatic.getResult_code() == 0) {
+                logger.info(String.format("帐号%s已经登录！"));
+            } else {
+                logger.info(String.format("帐号未登录！"));
+            }
+        }
 
+        logger.info("========================   loginInit    ========================");
+        String loginInit = trainService.loginInit().execute().body();
+        System.out.println(loginInit);
+
+        logger.info("========================   login    ========================");
+        Response<String> loginDto = trainService.login(username_str, password_str, "otn", builder.toString()).execute();
+        if (null != loginDto) {
+            System.out.println(JSON.toJSONString(loginDto));
+        } else {
+            System.out.println("login fail ");
+        }
         logger.info("========================   newapptk    ========================");
         String newapptk = trainService.uamtk("otn").execute().body().getNewapptk();
         logger.info("========================   newapptk:  " + newapptk + "    ========================");
